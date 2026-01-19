@@ -24,6 +24,16 @@ export interface ReviewAndCommitResult {
 }
 
 /**
+ * 日报结果接口
+ */
+export interface DailyReportResult {
+  /** 工作项列表 */
+  items: string[]
+  /** 总提交数 */
+  totalCommits: number
+}
+
+/**
  * 生成统一的代码审查 + commit 消息提示词
  * @param diff Git diff 内容
  * @returns 聊天消息数组
@@ -256,11 +266,24 @@ ${commitSummary || 'No commits today'}
 
 ## Output Format
 
-Return ONLY the numbered list in plain text (no JSON, no markdown). Example:
+TypeScript type definition (for your understanding):
+\`\`\`typescript
+interface Output {
+  items: string[];        // array of work items, each item is a concise summary
+  totalCommits: number;   // total number of commits processed
+}
+\`\`\`
 
-1. 完成了用户认证模块的开发，实现了登录和注册功能
-2. 修复了数据列表分页显示的 bug
-3. 优化了首页加载性能，提升了用户体验
+Return JSON matching above type (no markdown fences):
+
+{
+  "items": [
+    "完成了用户认证模块的开发，实现了登录和注册功能",
+    "修复了数据列表分页显示的 bug",
+    "优化了首页加载性能，提升了用户体验"
+  ],
+  "totalCommits": ${commitCount}
+}
 
 Remember: Stay within ${reportConfig.maxWords} words and use ${formatConfig.outputLanguage}.`
 

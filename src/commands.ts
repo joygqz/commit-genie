@@ -1,4 +1,5 @@
 import type { ExtensionContext } from 'vscode'
+import type { DailyReportResult } from './prompts'
 import { ConfigurationTarget, env, l10n, QuickPickItemKind, window } from 'vscode'
 import { generateDailyReportPrompt, generateReviewAndCommitPrompt } from './prompts'
 import { AbortManager } from './utils/abort-manager'
@@ -361,7 +362,7 @@ async function generateDailyReport(context: ExtensionContext) {
     }
 
     // 生成日报
-    const report = await ProgressHandler.withProgress(
+    const reportResult = await ProgressHandler.withProgress(
       '',
       async (progress, token) => {
         progress.report({ message: l10n.t('Generating daily report...') })
@@ -380,28 +381,41 @@ async function generateDailyReport(context: ExtensionContext) {
           content: apiResult.content,
         })
 
-        return apiResult.content.trim()
+        // 解析 JSON 响应
+        try {
+          const parsed = JSON.parse(apiResult.content.trim()) as DailyReportResult
+          return parsed
+        }
+        catch (error) {
+          logger.error('Failed to parse daily report JSON', error)
+          throw new Error(l10n.t('Failed to parse daily report response.'))
+        }
       },
       true,
     )
 
-    if (!report) {
+    if (!reportResult || !reportResult.items || reportResult.items.length === 0) {
       logger.warn('No report generated')
       window.showWarningMessage(l10n.t('Failed to generate daily report.'))
       return
     }
+
+    // 格式化日报显示
+    const formattedReport = reportResult.items
+      .map((item, index) => `${index + 1}. ${item}`)
+      .join('\n')
 
     // 显示日报并提供操作选项
     const today = new Date().toISOString().split('T')[0]
     const actions = [l10n.t('Copy to Clipboard'), l10n.t('Close')]
     const selected = await window.showInformationMessage(
       l10n.t('Daily Report ({0})', today),
-      { modal: true, detail: report },
+      { modal: true, detail: formattedReport },
       ...actions,
     )
 
     if (selected === l10n.t('Copy to Clipboard')) {
-      await env.clipboard.writeText(report)
+      await env.clipboard.writeText(formattedReport)
       window.showInformationMessage(l10n.t('Report copied to clipboard'))
       logger.info('Daily report copied to clipboard')
     }
