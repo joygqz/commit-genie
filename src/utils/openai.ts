@@ -114,14 +114,15 @@ export async function ChatGPTStreamAPI(
  * @param options 可选配置对象
  * @param options.signal 可选的中止信号，用于取消请求
  * @param options.timeout 请求超时时间（毫秒），默认 60 秒
+ * @param options.responseFormat 响应格式，'json' 或 'text'，默认为 'json'
  * @returns 包含完整响应内容和 token 使用统计的对象
  * @throws 如果请求失败则抛出错误（中止除外）
  */
 export async function ChatGPTAPI(
   messages: ChatCompletionMessageParam[],
-  options: { signal?: AbortSignal, timeout?: number } = {},
+  options: { signal?: AbortSignal, timeout?: number, responseFormat?: 'json' | 'text' } = {},
 ): Promise<{ content: string, usage?: TokenUsage }> {
-  const { signal, timeout = API_CONFIG.DEFAULT_TIMEOUT } = options
+  const { signal, timeout = API_CONFIG.DEFAULT_TIMEOUT, responseFormat = 'json' } = options
   const openai = createOpenAIApi()
   const { model } = config.getServiceConfig()
   const temperature = API_CONFIG.DEFAULT_TEMPERATURE
@@ -137,13 +138,19 @@ export async function ChatGPTAPI(
 
   try {
     // 创建聊天完成请求
-    const response = await openai.chat.completions.create({
+    const requestConfig: any = {
       model,
       messages: messages as ChatCompletionMessageParam[],
       temperature,
       stream: false,
-      response_format: { type: 'json_object' },
-    }, { signal: timeoutController.signal })
+    }
+    
+    // 只在需要 JSON 格式时添加 response_format
+    if (responseFormat === 'json') {
+      requestConfig.response_format = { type: 'json_object' }
+    }
+    
+    const response = await openai.chat.completions.create(requestConfig, { signal: timeoutController.signal })
 
     // 提取 token 使用情况
     let usage: TokenUsage | undefined

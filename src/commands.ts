@@ -374,7 +374,7 @@ async function generateDailyReport(context: ExtensionContext) {
 
         const prompts = await generateDailyReportPrompt(commits)
 
-        const apiResult = await ChatGPTAPI(prompts, { signal: controller.signal })
+        const apiResult = await ChatGPTAPI(prompts, { signal: controller.signal, responseFormat: 'text' })
 
         logger.debug('Daily report response received', {
           content: apiResult.content,

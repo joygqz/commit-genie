@@ -241,14 +241,17 @@ export async function generateDailyReportPrompt(
 3. **Word Limit**: Total content MUST NOT exceed ${reportConfig.maxWords} words (Chinese characters count as 1 word each)
 4. **Content Style**:
    - Be concise and professional
-   - Focus on WHAT was accomplished, not technical details
-   - Summarize related commits into logical work items
+   - **MUST identify and explicitly mention module/feature names** from commit messages (e.g., file paths, component names, feature areas)
+   - Focus on WHAT was accomplished, including which modules were modified
+   - Summarize related commits by module or feature area
    - Use action verbs (completed, implemented, fixed, optimized, etc.)
-   - Avoid technical jargon when possible
+   - Avoid excessive technical jargon but keep module/feature names clear
 5. **Structure**:
-   - Each numbered item should represent a major task or feature
-   - Group related commits together
-   - Prioritize important work first${customPromptSection}
+   - Each numbered item should represent work on a specific module or feature area
+   - Group commits by module/feature (e.g., user authentication module, payment system, data list component)
+   - Clearly state which modules/features were affected
+   - Prioritize important work first
+   - Format: [Module/Feature Name]: [What was done]${customPromptSection}
 
 ## Today's Commits (${commitCount} total)
 
@@ -256,13 +259,14 @@ ${commitSummary || 'No commits today'}
 
 ## Output Format
 
-Return ONLY the numbered list in plain text (no JSON, no markdown). Example:
+Return ONLY the numbered list in plain text (no JSON, no markdown). Example format:
 
-1. 完成了用户认证模块的开发，实现了登录和注册功能
-2. 修复了数据列表分页显示的 bug
-3. 优化了首页加载性能，提升了用户体验
+1. 用户认证模块：新增了登录和注册功能，实现了密码加密和会话管理
+2. 数据列表组件：修复了分页显示和排序功能的 bug
+3. 首页性能优化：优化了资源加载策略，提升了初始化速度
+4. 支付系统：完成了微信支付和支付宝支付的集成
 
-Remember: Stay within ${reportConfig.maxWords} words and use ${formatConfig.outputLanguage}.`
+Remember: Stay within ${reportConfig.maxWords} words, use ${formatConfig.outputLanguage}, and always identify the module/feature being worked on.`
 
   return [
     {
