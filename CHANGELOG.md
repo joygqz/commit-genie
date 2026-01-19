@@ -1,3 +1,12 @@
+## [3.0.2](https://github.com/joygqz/commit-genie/compare/v3.0.0...v3.0.2) (2026-01-19)
+
+
+### Features
+
+* **prompts:** 添加日报结果接口和输出格式定义 ([acfd34e](https://github.com/joygqz/commit-genie/commit/acfd34e2a056f8df7c97394d18d63fe593f22f0e))
+
+
+
 # [3.0.0](https://github.com/joygqz/commit-genie/compare/v2.2.11...v3.0.0) (2026-01-19)
 
 
