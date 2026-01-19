@@ -1,3 +1,13 @@
+# [3.0.0](https://github.com/joygqz/commit-genie/compare/v2.2.11...v3.0.0) (2026-01-19)
+
+
+### Features
+
+* **extension:** 添加对 Git 扩展的依赖 ([9297295](https://github.com/joygqz/commit-genie/commit/929729531b75ab3c094e3fb93d0dc1d015dec292))
+* **report:** 添加日报生成功能 ([922d232](https://github.com/joygqz/commit-genie/commit/922d2320f7b203001ee335a885ea344272276380))
+
+
+
 ## [2.2.11](https://github.com/joygqz/commit-genie/compare/v2.2.10...v2.2.11) (2025-10-11)
 
 
