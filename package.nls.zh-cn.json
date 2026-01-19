@@ -3,11 +3,14 @@
   "command.selectAvailableModel.title": "选择可用模型",
   "command.showTokenStats.title": "显示 Token 使用统计",
   "command.resetTokenStats.title": "重置 Token 使用统计",
+  "command.generateDailyReport.title": "生成日报",
   "configuration.service.apiKey.description": "用于 AI 服务提供商身份验证的 API 密钥。",
   "configuration.service.baseURL.description": "AI 服务 API 端点的基础 URL。",
   "configuration.service.model.description": "用于生成提交信息的 AI 模型。运行 [Commit Genie: 选择可用模型](command:commit-genie.selectAvailableModel) 从可用选项中选择。",
   "configuration.format.outputLanguage.description": "所有 AI 生成内容的语言（提交信息和代码审查）。",
   "configuration.review.customPrompt.description": "追加到代码审查系统消息的自定义提示语。使用此选项添加特定的审查规则或重点关注的问题类型。",
   "configuration.commit.enableEmojiPrefix.description": "在提交信息类型前添加表情符号（如 ✨ feat, 🐛 fix）。",
-  "configuration.commit.customPrompt.description": "追加到提交信息生成系统消息的自定义提示语。例如：强制包含 Jira 工单号、使用特定的提交格式、遵循团队规范等。"
+  "configuration.commit.customPrompt.description": "追加到提交信息生成系统消息的自定义提示语。例如：强制包含 Jira 工单号、使用特定的提交格式、遵循团队规范等。",
+  "configuration.report.maxWords.description": "日报内容的最大字数限制（50-1000 字）。",
+  "configuration.report.customPrompt.description": "追加到日报生成系统消息的自定义提示语。使用此选项添加特定的日报格式要求或内容偏好。"
 }

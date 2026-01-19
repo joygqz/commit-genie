@@ -32,6 +32,14 @@ export interface ReviewConfig {
   customPrompt: string
 }
 
+/**
+ * 日报配置接口
+ */
+export interface ReportConfig {
+  maxWords: number
+  customPrompt: string
+}
+
 class ConfigManager {
   private readonly section = EXTENSION_ID
 
@@ -107,6 +115,17 @@ class ConfigManager {
   getReviewConfig(): ReviewConfig {
     return {
       customPrompt: this.get<string>('review.customPrompt', ''),
+    }
+  }
+
+  /**
+   * 获取日报相关配置
+   * @returns 日报配置对象
+   */
+  getReportConfig(): ReportConfig {
+    return {
+      maxWords: this.get<number>('report.maxWords', 200),
+      customPrompt: this.get<string>('report.customPrompt', ''),
     }
   }
 }

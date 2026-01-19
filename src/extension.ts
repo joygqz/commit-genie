@@ -38,6 +38,11 @@ export function activate(context: vscode.ExtensionContext) {
       COMMANDS.RESET_TOKEN_STATS,
       Commands.resetTokenStats,
     ),
+    // 生成日报
+    commands.registerCommand(
+      COMMANDS.GENERATE_DAILY_REPORT,
+      Commands.generateDailyReport.bind(null, context),
+    ),
   )
 }
 

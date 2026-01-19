@@ -93,6 +93,11 @@
         "category": "Commit Genie",
         "command": "commit-genie.resetTokenStats",
         "title": "%command.resetTokenStats.title%"
+      },
+      {
+        "category": "Commit Genie",
+        "command": "commit-genie.generateDailyReport",
+        "title": "%command.generateDailyReport.title%"
       }
     ],
     "configuration": {
@@ -162,6 +167,21 @@
           "type": "string",
           "editPresentation": "multilineText",
           "order": 31
+        },
+        "commit-genie.report.maxWords": {
+          "default": 200,
+          "markdownDescription": "%configuration.report.maxWords.description%",
+          "type": "number",
+          "minimum": 50,
+          "maximum": 1000,
+          "order": 40
+        },
+        "commit-genie.report.customPrompt": {
+          "default": "",
+          "markdownDescription": "%configuration.report.customPrompt.description%",
+          "type": "string",
+          "editPresentation": "multilineText",
+          "order": 41
         }
       }
     },

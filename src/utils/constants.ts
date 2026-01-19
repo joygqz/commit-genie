@@ -20,6 +20,8 @@ export const COMMANDS = {
   SHOW_TOKEN_STATS: `${EXTENSION_ID}.showTokenStats`,
   /** 重置 Token 统计命令 */
   RESET_TOKEN_STATS: `${EXTENSION_ID}.resetTokenStats`,
+  /** 生成日报命令 */
+  GENERATE_DAILY_REPORT: `${EXTENSION_ID}.generateDailyReport`,
 } as const
 
 /**

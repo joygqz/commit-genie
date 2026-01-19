@@ -92,3 +92,50 @@ export async function getDiffStaged(repo: GitRepository): Promise<string> {
 
   return diff || l10n.t('No staged changes.')
 }
+
+/**
+ * Git 提交日志接口
+ */
+export interface GitCommitLog {
+  hash: string
+  date: string
+  message: string
+  author: string
+}
+
+/**
+ * 获取当日的 Git 提交日志
+ * @param repo Git 仓库实例
+ * @returns 当日的提交日志数组
+ * @throws 如果工作区文件夹未找到则抛出错误
+ */
+export async function getTodayCommits(repo: GitRepository): Promise<GitCommitLog[]> {
+  // 获取仓库根路径
+  const rootPath = repo?.rootUri?.fsPath || workspace.workspaceFolders?.[0].uri.fsPath
+
+  if (!rootPath) {
+    throw new Error(l10n.t('Workspace folder not found.'))
+  }
+
+  // 创建 simple-git 实例
+  const git = simpleGit(rootPath)
+
+  // 获取今天的开始时间（00:00:00）
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayStr = today.toISOString().split('T')[0]
+
+  // 使用 git log 获取今天的提交
+  const log = await git.log({
+    '--since': todayStr,
+    '--all': null,
+  })
+
+  // 转换为标准格式
+  return log.all.map(commit => ({
+    hash: commit.hash,
+    date: commit.date,
+    message: commit.message,
+    author: commit.author_name,
+  }))
+}

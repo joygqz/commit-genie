@@ -3,11 +3,14 @@
   "command.selectAvailableModel.title": "Select Available Model",
   "command.showTokenStats.title": "Show Token Usage Statistics",
   "command.resetTokenStats.title": "Reset Token Usage Statistics",
+  "command.generateDailyReport.title": "Generate Daily Report",
   "configuration.service.apiKey.description": "API key for authentication with your AI service provider.",
   "configuration.service.baseURL.description": "Base URL of the AI service API endpoint.",
   "configuration.service.model.description": "AI model to use for generating commit messages. Run [Commit Genie: Select Available Model](command:commit-genie.selectAvailableModel) to choose from available options.",
   "configuration.format.outputLanguage.description": "Language for all AI-generated content (commit messages and code reviews).",
   "configuration.review.customPrompt.description": "Custom prompt to append to the code review system message. Use this to add specific review rules or focus areas.",
   "configuration.commit.enableEmojiPrefix.description": "Add emoji prefix before commit type (e.g., ✨ feat, 🐛 fix).",
-  "configuration.commit.customPrompt.description": "Custom prompt to append to the commit message generation system message. Examples: enforce Jira ticket numbers, use specific format, follow team conventions."
+  "configuration.commit.customPrompt.description": "Custom prompt to append to the commit message generation system message. Examples: enforce Jira ticket numbers, use specific format, follow team conventions.",
+  "configuration.report.maxWords.description": "Maximum word count for daily report content (50-1000 words).",
+  "configuration.report.customPrompt.description": "Custom prompt to append to the daily report generation system message. Use this to add specific requirements or format preferences for your daily reports."
 }

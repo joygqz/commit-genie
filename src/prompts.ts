@@ -1,4 +1,5 @@
 import type { ChatCompletionMessageParam } from 'openai/resources'
+import type { GitCommitLog } from './utils/git'
 import { config } from './utils/config'
 import { COMMIT_FORMAT } from './utils/constants'
 
@@ -204,6 +205,75 @@ Remember: Set review.passed based on findings. ALL text content MUST be in ${for
     {
       role: 'user',
       content: trimmedDiff,
+    } satisfies ChatCompletionMessageParam,
+  ]
+}
+
+/**
+ * 生成日报提示词
+ * @param commits 当日的 Git 提交日志
+ * @returns 聊天消息数组
+ */
+export async function generateDailyReportPrompt(
+  commits: GitCommitLog[],
+): Promise<ChatCompletionMessageParam[]> {
+  const formatConfig = config.getFormatConfig()
+  const reportConfig = config.getReportConfig()
+
+  // 构建提交信息摘要
+  const commitSummary = commits.map((commit, index) => {
+    return `${index + 1}. ${commit.message} (${commit.hash.substring(0, 7)})`
+  }).join('\n')
+
+  const commitCount = commits.length
+
+  // 构建自定义提示
+  const customPromptSection = reportConfig.customPrompt.trim()
+    ? `\n\n${reportConfig.customPrompt}`
+    : ''
+
+  const systemContent = `You are a professional daily report generator. Based on today's Git commit logs, generate a concise and professional daily work report.
+
+## Requirements
+
+1. **Output Language**: ALL content MUST be in ${formatConfig.outputLanguage}
+2. **Format**: Use numbered list format (1. 2. 3. ...)
+3. **Word Limit**: Total content MUST NOT exceed ${reportConfig.maxWords} words (Chinese characters count as 1 word each)
+4. **Content Style**:
+   - Be concise and professional
+   - Focus on WHAT was accomplished, not technical details
+   - Summarize related commits into logical work items
+   - Use action verbs (completed, implemented, fixed, optimized, etc.)
+   - Avoid technical jargon when possible
+5. **Structure**:
+   - Each numbered item should represent a major task or feature
+   - Group related commits together
+   - Prioritize important work first${customPromptSection}
+
+## Today's Commits (${commitCount} total)
+
+${commitSummary || 'No commits today'}
+
+## Output Format
+
+Return ONLY the numbered list in plain text (no JSON, no markdown). Example:
+
+1. 完成了用户认证模块的开发，实现了登录和注册功能
+2. 修复了数据列表分页显示的 bug
+3. 优化了首页加载性能，提升了用户体验
+
+Remember: Stay within ${reportConfig.maxWords} words and use ${formatConfig.outputLanguage}.`
+
+  return [
+    {
+      role: 'system',
+      content: systemContent,
+    } satisfies ChatCompletionMessageParam,
+    {
+      role: 'user',
+      content: commitCount > 0
+        ? `Please generate a daily report based on the ${commitCount} commits above.`
+        : 'No commits today, please generate a brief daily report indicating no development work was done.',
     } satisfies ChatCompletionMessageParam,
   ]
 }

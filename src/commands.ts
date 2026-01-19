@@ -1,11 +1,11 @@
 import type { ExtensionContext } from 'vscode'
-import { ConfigurationTarget, l10n, QuickPickItemKind, window } from 'vscode'
-import { generateReviewAndCommitPrompt } from './prompts'
+import { ConfigurationTarget, env, l10n, QuickPickItemKind, window } from 'vscode'
+import { generateDailyReportPrompt, generateReviewAndCommitPrompt } from './prompts'
 import { AbortManager } from './utils/abort-manager'
 import { config } from './utils/config'
 import { EXTENSION_NAME } from './utils/constants'
 import { getUserFriendlyErrorMessage, shouldSilenceError } from './utils/error-handler'
-import { getDiffStaged, getRepo } from './utils/git'
+import { getDiffStaged, getRepo, getTodayCommits } from './utils/git'
 import { logger, ProgressHandler, validateConfig } from './utils/index'
 import { ChatGPTAPI, getAvailableModels } from './utils/openai'
 import { showReviewResultAndAskToContinue } from './utils/review-dialog'
@@ -319,8 +319,111 @@ async function resetTokenStats() {
   }
 }
 
+/**
+ * 生成日报命令
+ * @param context 扩展上下文
+ */
+async function generateDailyReport(context: ExtensionContext) {
+  const controller = abortManager.createController()
+
+  try {
+    logger.info('Starting daily report generation')
+
+    // 验证配置
+    const validation = validateConfig([
+      { key: 'service.apiKey', required: true, errorMessage: l10n.t('API Key is required. Please configure it in settings.') },
+      { key: 'service.baseURL', required: true, errorMessage: l10n.t('Base URL is required. Please configure it in settings.') },
+      { key: 'service.model', required: true, errorMessage: l10n.t('Model is required. Please configure it in settings.') },
+    ])
+    if (!validation.isValid) {
+      logger.warn('Configuration validation failed', { error: validation.error })
+      window.showErrorMessage(validation.error!)
+      return
+    }
+
+    // 获取仓库
+    const repo = await getRepo(context)
+
+    // 获取今天的提交记录
+    const commits = await getTodayCommits(repo)
+
+    logger.debug('Retrieved today\'s commits', { count: commits.length })
+
+    if (commits.length === 0) {
+      const proceed = await window.showInformationMessage(
+        l10n.t('No commits found today. Generate report anyway?'),
+        l10n.t('Yes'),
+        l10n.t('No'),
+      )
+      if (proceed !== l10n.t('Yes')) {
+        return
+      }
+    }
+
+    // 生成日报
+    const report = await ProgressHandler.withProgress(
+      '',
+      async (progress, token) => {
+        progress.report({ message: l10n.t('Generating daily report...') })
+
+        token?.onCancellationRequested(() => {
+          controller.abort()
+        })
+
+        logger.info('Generating daily report from commits')
+
+        const prompts = await generateDailyReportPrompt(commits)
+
+        const apiResult = await ChatGPTAPI(prompts, { signal: controller.signal })
+
+        logger.debug('Daily report response received', {
+          content: apiResult.content,
+        })
+
+        return apiResult.content.trim()
+      },
+      true,
+    )
+
+    if (!report) {
+      logger.warn('No report generated')
+      window.showWarningMessage(l10n.t('Failed to generate daily report.'))
+      return
+    }
+
+    // 显示日报并提供操作选项
+    const today = new Date().toISOString().split('T')[0]
+    const actions = [l10n.t('Copy to Clipboard'), l10n.t('Close')]
+    const selected = await window.showInformationMessage(
+      l10n.t('Daily Report ({0})', today),
+      { modal: true, detail: report },
+      ...actions,
+    )
+
+    if (selected === l10n.t('Copy to Clipboard')) {
+      await env.clipboard.writeText(report)
+      window.showInformationMessage(l10n.t('Report copied to clipboard'))
+      logger.info('Daily report copied to clipboard')
+    }
+
+    logger.info('Daily report generated successfully')
+  }
+  catch (error: unknown) {
+    if (shouldSilenceError(error)) {
+      return
+    }
+
+    logger.error('Failed to generate daily report', error)
+    window.showErrorMessage(getUserFriendlyErrorMessage(error))
+  }
+  finally {
+    abortManager.clear(controller)
+  }
+}
+
 // 导出命令函数供扩展入口文件使用
 export {
+  generateDailyReport,
   resetTokenStats,
   reviewAndCommit,
   selectAvailableModel,
