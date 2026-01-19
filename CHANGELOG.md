@@ -1,3 +1,12 @@
+## [3.0.1](https://github.com/joygqz/commit-genie/compare/v3.0.0...v3.0.1) (2026-01-19)
+
+
+### Features
+
+* **report:** 增强日报生成功能，支持文本格式响应并改进提示词 ([ef834cb](https://github.com/joygqz/commit-genie/commit/ef834cbec77ea8f1481429bc21ae5ace062935ff))
+
+
+
 # [3.0.0](https://github.com/joygqz/commit-genie/compare/v2.2.11...v3.0.0) (2026-01-19)
 
 
