@@ -278,9 +278,9 @@ Return JSON matching above type (no markdown fences):
 
 {
   "items": [
-    "完成了用户认证模块的开发，实现了登录和注册功能",
-    "修复了数据列表分页显示的 bug",
-    "优化了首页加载性能，提升了用户体验"
+    "完成了用户认证模块的开发，实现了登录和注册功能。",
+    "修复了数据列表分页显示的 bug。",
+    "优化了首页加载性能，提升了用户体验。"
   ],
   "totalCommits": ${commitCount}
 }

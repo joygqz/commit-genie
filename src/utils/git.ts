@@ -120,14 +120,17 @@ export async function getTodayCommits(repo: GitRepository): Promise<GitCommitLog
   // 创建 simple-git 实例
   const git = simpleGit(rootPath)
 
-  // 获取今天的开始时间（00:00:00）
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayStr = today.toISOString().split('T')[0]
+  // 获取今天的开始和结束时间
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  
+  const todayEnd = new Date()
+  todayEnd.setHours(23, 59, 59, 999)
 
   // 使用 git log 获取今天的提交
   const log = await git.log({
-    '--since': todayStr,
+    '--since': todayStart.toISOString(),
+    '--until': todayEnd.toISOString(),
     '--all': null,
   })
 

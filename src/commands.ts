@@ -401,21 +401,29 @@ async function generateDailyReport(context: ExtensionContext) {
     }
 
     // 格式化日报显示
-    const formattedReport = reportResult.items
+    const reportSection = reportResult.items
       .map((item, index) => `${index + 1}. ${item}`)
       .join('\n')
 
+    // 格式化提交记录（显示时样式弱化）
+    const commitsSection = commits.length > 0
+      ? `\n\n${l10n.t('Commits Today')} (${commits.length}):\n${commits.map((commit, index) =>
+        `${index + 1}. [${commit.hash.substring(0, 7)}] ${commit.message} - ${commit.author}`,
+      ).join('\n')}`
+      : ''
+
+    const formattedReport = `${l10n.t('Summary')}:\n${reportSection}${commitsSection}`
+
     // 显示日报并提供操作选项
     const today = new Date().toISOString().split('T')[0]
-    const actions = [l10n.t('Copy to Clipboard'), l10n.t('Close')]
     const selected = await window.showInformationMessage(
       l10n.t('Daily Report ({0})', today),
       { modal: true, detail: formattedReport },
-      ...actions,
+      l10n.t('Copy to Clipboard'),
     )
 
     if (selected === l10n.t('Copy to Clipboard')) {
-      await env.clipboard.writeText(formattedReport)
+      await env.clipboard.writeText(reportSection)
       window.showInformationMessage(l10n.t('Report copied to clipboard'))
       logger.info('Daily report copied to clipboard')
     }
