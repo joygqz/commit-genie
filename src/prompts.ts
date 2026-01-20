@@ -4,15 +4,25 @@ import { config } from './utils/config'
 import { COMMIT_FORMAT } from './utils/constants'
 
 /**
+ * 代码 review 项（问题或建议）
+ */
+export interface ReviewItem {
+  /** 描述 */
+  description: string
+  /** 文件路径（可选） */
+  file?: string
+  /** 行号（可选） */
+  line?: number
+}
+
+/**
  * 代码 review 结果接口
  */
 export interface CodeReviewResult {
   /** 是否通过 review */
   passed: boolean
-  /** 问题列表 */
-  issues: string[]
-  /** 建议列表 */
-  suggestions: string[]
+  /** 问题列表（支持字符串或结构化对象） */
+  issues: (string | ReviewItem)[]
 }
 
 /**
@@ -81,11 +91,13 @@ export async function generateReviewAndCommitPrompt(
   const reviewCustomPrompt = reviewConfig.customPrompt.trim()
   const commitCustomPrompt = commitConfig.customPrompt.trim()
 
-  const systemContent = `You are a code review and commit message generator. Analyze git diff changes and produce both review feedback and a Conventional Commit message.
+  const systemContent = `You are a code review and commit message generator. You must perform TWO INDEPENDENT TASKS:
 
-CRITICAL: ALL text output (review issues, suggestions, commit message) MUST be in ${formatConfig.outputLanguage}.${languageNote} ONLY technical terms (commit types like feat/fix, code identifiers, file paths) remain in English.
+CRITICAL: ALL text output (review issues, commit message) MUST be in ${formatConfig.outputLanguage}.${languageNote} ONLY technical terms (commit types like feat/fix, code identifiers, file paths) remain in English.
 
-## Task 1 — Code Review
+## Task 1 — Code Review (Check for Syntax Errors)
+
+This task is INDEPENDENT from commit message generation. Your job is ONLY to check for syntax errors.
 
 CAREFULLY examine ONLY the ADDED or MODIFIED lines in the diff for syntax errors.
 
@@ -119,7 +131,7 @@ Rules:
 - When lacking context or uncertain, pass the review (set passed=true)
 - DO NOT report: undefined variables/functions (you can't see imports/definitions), code style, logic bugs, performance, code smells, potential issues
 - Set passed=false ONLY for clear syntax errors in ADDED lines
-- Default when no errors found: passed=true, issues=[], suggestions=[]
+- Default when no errors found: passed=true, issues=[]
 - Each issue MUST include: short description + affected file/line
 - Write ALL descriptions in ${formatConfig.outputLanguage}${reviewCustomPrompt
   ? `
@@ -128,7 +140,11 @@ Additional review guidance:
 ${reviewCustomPrompt}`
   : ''}
 
-## Task 2 — Commit Message
+## Task 2 — Generate Commit Message (Describe the Changes)
+
+This task is INDEPENDENT from code review. Generate commit message based on WHAT changed, regardless of whether there are syntax errors.
+
+IMPORTANT: Even if review.passed=false, still generate a proper commit message that describes the actual changes in the diff.
 
 Format: type(scope): subject
 
@@ -173,34 +189,69 @@ ${commitCustomPrompt}`
 
 TypeScript type definition (for your understanding):
 \`\`\`typescript
+interface ReviewItem {
+  description: string;       // error description
+  file?: string;             // file path (e.g., "src/app.ts")
+  line?: number;             // line number where issue occurs
+}
+
 interface Output {
   review: {
     passed: boolean;           // true = no errors, false = has errors
-    issues: string[];          // array of plain text strings describing errors
-    suggestions: string[];     // array of plain text strings with suggestions
+    issues: ReviewItem[];      // array of structured issue objects with file/line info
   };
   commitMessage: string;       // single string, may contain \\n for body
 }
 \`\`\`
 
+IMPORTANT: Each issue MUST include file path and line number when available from the diff headers (e.g., "diff --git a/src/file.ts", "@@ -10,5 +10,7 @@").
+
+CRITICAL: The two tasks are INDEPENDENT:
+- review.passed indicates whether there are syntax errors
+- commitMessage describes what changed, regardless of errors
+
 Return JSON matching above type (no markdown fences):
 
-Simple change example:
+Example 1 - No syntax errors:
 {
   "review": {
     "passed": true,
-    "issues": [],
-    "suggestions": []
+    "issues": []
   },
   "commitMessage": "feat(auth): add OAuth2 support"
 }
 
-Complex change example with body (body MUST use "- " format):
+Example 2 - Has syntax error, but still provide commit message:
 {
   "review": {
-    "passed": true,
-    "issues": [],
-    "suggestions": []
+    "passed": false,
+    "issues": [
+      {
+        "description": "缺少右括号",
+        "file": "src/auth.ts",
+        "line": 42
+      }
+    ]
+  },
+  "commitMessage": "feat(auth): add OAuth2 support"
+}
+
+Example 3 - Multiple errors, complex changes with body:
+{
+  "review": {
+    "passed": false,
+    "issues": [
+      {
+        "description": "字符串未闭合",
+        "file": "src/utils.ts",
+        "line": 15
+      },
+      {
+        "description": "缺少分号",
+        "file": "src/helper.ts",
+        "line": 28
+      }
+    ]
   },
   "commitMessage": "feat(auth): add OAuth2 support\n\n- implement OAuth2 authentication flow for third-party login\n- add support for Google and GitHub providers\n- improve security with token-based authentication\n- enhance user experience with social login options"
 }

@@ -123,7 +123,7 @@ export async function getTodayCommits(repo: GitRepository): Promise<GitCommitLog
   // 获取今天的开始和结束时间
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
-  
+
   const todayEnd = new Date()
   todayEnd.setHours(23, 59, 59, 999)
 

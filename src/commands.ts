@@ -110,7 +110,6 @@ async function reviewAndCommit(context: ExtensionContext) {
           const defaultReview = {
             passed: true,
             issues: [] as string[],
-            suggestions: [] as string[],
           }
           const review = parsed.review ?? defaultReview
           const commitMessage = (parsed.commitMessage ?? '').trim()
@@ -407,7 +406,7 @@ async function generateDailyReport(context: ExtensionContext) {
 
     // 格式化提交记录（显示时样式弱化）
     const commitsSection = commits.length > 0
-      ? `\n\n${l10n.t('Commits Today')} (${commits.length}):\n${commits.map((commit, index) =>
+      ? `\n\n${l10n.t('Commits Today: {0}', commits.length)}\n${commits.map((commit, index) =>
         `${index + 1}. [${commit.hash.substring(0, 7)}] ${commit.message} - ${commit.author}`,
       ).join('\n')}`
       : ''
