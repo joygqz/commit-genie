@@ -1,3 +1,13 @@
+# [3.1.0](https://github.com/joygqz/commit-genie/compare/v3.0.2...v3.1.0) (2026-01-20)
+
+
+### Features
+
+* **l10n:** 更新本地化字符串并重构代码审查界面 ([a2bfb1b](https://github.com/joygqz/commit-genie/commit/a2bfb1b336ee13cd1376916dc2c8f780288cdb9e))
+* **report:** 增强日报功能并优化提交记录显示 ([77ac49a](https://github.com/joygqz/commit-genie/commit/77ac49a281913930666078dd8c3fefc3002b798a))
+
+
+
 ## [3.0.2](https://github.com/joygqz/commit-genie/compare/v3.0.0...v3.0.2) (2026-01-19)
 
 
