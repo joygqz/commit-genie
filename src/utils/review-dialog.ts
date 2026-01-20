@@ -95,15 +95,15 @@ async function showReviewWithQuickPick(review: CodeReviewResult): Promise<boolea
     else {
       const fileInfo = issue.line ? `${issue.file}:${issue.line}` : issue.file || ''
       // 如果描述太长，label 显示简短版本，detail 显示完整描述
-      const shortDesc = issue.description.length > 60 
-        ? `${issue.description.substring(0, 60)}...` 
+      const shortDesc = issue.description.length > 60
+        ? `${issue.description.substring(0, 60)}...`
         : issue.description
-      
+
       items.push({
         label: `${index + 1}. ${shortDesc}`,
         description: undefined, // 隐藏路径，不在 label 右侧显示
-        detail: issue.description.length > 60 
-          ? `${issue.description}\n\n${fileInfo}` 
+        detail: issue.description.length > 60
+          ? `${issue.description}\n\n${fileInfo}`
           : fileInfo,
         action: issue.file ? async () => await openFileAtLine(issue.file!, issue.line) : undefined,
       })
