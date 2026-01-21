@@ -1,3 +1,12 @@
+## [3.1.1](https://github.com/joygqz/commit-genie/compare/v3.1.0...v3.1.1) (2026-01-21)
+
+
+### Features
+
+* **git:** 添加当前用户过滤功能到今日提交查询 ([ed5df65](https://github.com/joygqz/commit-genie/commit/ed5df652a81bf8ebaa2d790cea1e87454b15b0eb))
+
+
+
 # [3.1.0](https://github.com/joygqz/commit-genie/compare/v3.0.2...v3.1.0) (2026-01-20)
 
 
