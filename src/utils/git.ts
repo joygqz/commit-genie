@@ -120,6 +120,10 @@ export async function getTodayCommits(repo: GitRepository): Promise<GitCommitLog
   // 创建 simple-git 实例
   const git = simpleGit(rootPath)
 
+  // 获取当前用户信息
+  const userName = await git.raw(['config', 'user.name'])
+  const currentUser = userName.trim()
+
   // 获取今天的开始和结束时间
   const todayStart = new Date()
   todayStart.setHours(0, 0, 0, 0)
@@ -127,10 +131,11 @@ export async function getTodayCommits(repo: GitRepository): Promise<GitCommitLog
   const todayEnd = new Date()
   todayEnd.setHours(23, 59, 59, 999)
 
-  // 使用 git log 获取今天的提交
+  // 使用 git log 获取今天的提交，只获取当前用户的提交
   const log = await git.log({
     '--since': todayStart.toISOString(),
     '--until': todayEnd.toISOString(),
+    '--author': currentUser,
     '--all': null,
   })
 
