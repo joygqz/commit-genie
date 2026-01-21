@@ -35,7 +35,6 @@
   "Failed to parse daily report response.": "解析日报响应失败。",
   "Failed to generate daily report.": "生成日报失败。",
   "Summary": "总结",
-  "Commits Today: {0}": "今日提交：{0}",
   "Daily Report ({0})": "日报 ({0})",
   "Copy to Clipboard": "复制到剪贴板",
   "Report copied to clipboard": "日报已复制到剪贴板",

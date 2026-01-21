@@ -34,7 +34,6 @@
   "Generating daily report...": "Generating daily report...",
   "Failed to parse daily report response.": "Failed to parse daily report response.",
   "Failed to generate daily report.": "Failed to generate daily report.",
-  "Commits Today: {0}": "Commits Today: {0}",
   "Summary": "Summary",
   "Daily Report ({0})": "Daily Report ({0})",
   "Copy to Clipboard": "Copy to Clipboard",
