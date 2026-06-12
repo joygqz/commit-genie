@@ -66,7 +66,9 @@ async function generate(sourceControl?: SourceControl) {
 }
 
 async function selectModel() {
-  const config = await requireConfig()
+  // Listing models only needs the API key and base URL — the model itself
+  // is what this command sets, so don't require it up front.
+  const config = await requireConfig({ needModel: false })
   if (!config) {
     return
   }
@@ -94,14 +96,17 @@ async function selectModel() {
   }
 }
 
-async function requireConfig(): Promise<Config | undefined> {
+async function requireConfig({ needModel = true } = {}): Promise<Config | undefined> {
   const config = getConfig()
-  if (config.apiKey && config.baseURL && config.model) {
+  if (config.apiKey && config.baseURL && (!needModel || config.model)) {
     return config
   }
 
   const open = 'Open Settings'
-  const action = await window.showErrorMessage('Commit Genie needs an API key, base URL and model.', open)
+  const action = await window.showErrorMessage(
+    needModel ? 'Commit Genie needs an API key, base URL and model.' : 'Commit Genie needs an API key and base URL.',
+    open,
+  )
   if (action === open) {
     commands.executeCommand('workbench.action.openSettings', '@ext:joygqz.commit-genie')
   }
