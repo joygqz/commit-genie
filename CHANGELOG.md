@@ -1,3 +1,7 @@
+# [4.0.0](https://github.com/joygqz/commit-genie/compare/v3.1.1...v4.0.0) (2026-06-12)
+
+
+
 ## [3.1.1](https://github.com/joygqz/commit-genie/compare/v3.1.0...v3.1.1) (2026-01-21)
 
 
