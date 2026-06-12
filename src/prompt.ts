@@ -25,12 +25,12 @@ export function buildMessages(diff: string): ChatMessage[] {
 
   const extras = [
     useEmoji && '- prefix the subject with the gitmoji for the type: ✨ feat, 🐛 fix, 📝 docs, 💄 style, ♻️ refactor, ⚡ perf, ✅ test, 📦 build, 👷 ci, 🔧 chore, ⏪ revert',
-    `- write the subject and body in ${language}; keep type, scope and code identifiers in English`,
+    language && `- write the subject and body in ${language}; keep type, scope and code identifiers in English`,
     instructions && `\nAdditional instructions (highest priority):\n${instructions}`,
   ].filter(Boolean).join('\n')
 
   return [
-    { role: 'system', content: `${SYSTEM_PROMPT}\n${extras}` },
+    { role: 'system', content: extras ? `${SYSTEM_PROMPT}\n${extras}` : SYSTEM_PROMPT },
     { role: 'user', content: diff },
   ]
 }

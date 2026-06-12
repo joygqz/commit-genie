@@ -33,7 +33,6 @@
   "main": "./dist/extension.js",
   "icon": "./images/logo.png",
   "files": [
-    "CHANGELOG.md",
     "LICENSE",
     "dist/*",
     "images/*"
@@ -61,19 +60,16 @@
       "properties": {
         "commit-genie.baseURL": {
           "type": "string",
-          "default": "https://api.deepseek.com",
           "markdownDescription": "API endpoint. Any OpenAI-compatible service works, e.g. `https://api.openai.com/v1`, `https://api.deepseek.com`, `http://localhost:11434/v1` (Ollama).",
           "order": 0
         },
         "commit-genie.apiKey": {
           "type": "string",
-          "default": "",
           "description": "API key.",
           "order": 1
         },
         "commit-genie.model": {
           "type": "string",
-          "default": "deepseek-chat",
           "markdownDescription": "Model ID. Run `Commit Genie: Select Model` to pick from your provider.",
           "order": 2
         },
@@ -91,7 +87,6 @@
         },
         "commit-genie.instructions": {
           "type": "string",
-          "default": "",
           "editPresentation": "multilineText",
           "description": "Extra instructions appended to the prompt, e.g. team conventions or ticket-number format.",
           "order": 5
@@ -117,10 +112,9 @@
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "check-types": "tsc --noEmit",
     "lint": "eslint .",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "ext:package": "vsce package",
     "ext:publish": "vsce publish",
-    "release": "bumpp -x \"pnpm run changelog\" -a"
+    "release": "bumpp -a"
   },
   "extensionDependencies": [
     "vscode.git"
@@ -132,7 +126,6 @@
     "@vscode/vsce": "^3.6.2",
     "baseline-browser-mapping": "^2.10.36",
     "bumpp": "^10.2.3",
-    "conventional-changelog-cli": "^5.0.0",
     "esbuild": "^0.25.10",
     "eslint": "^9.37.0",
     "npm-run-all": "^4.1.5",

@@ -38,6 +38,7 @@ export async function streamCompletion(
 
   while (true) {
     const { done, value } = await reader.read()
+    signal.throwIfAborted()
     if (done) {
       break
     }
@@ -82,26 +83,25 @@ export async function listModels(signal?: AbortSignal): Promise<string[]> {
 }
 
 async function request(url: string, signal: AbortSignal | undefined, init: RequestInit): Promise<Response> {
+  // Stay linked to the caller's signal for the lifetime of the response, so
+  // aborting also cancels body streaming — not just the initial fetch.
   const controller = new AbortController()
-  const abort = () => controller.abort()
+  signal?.addEventListener('abort', () => controller.abort(), { once: true })
   const timer = setTimeout(() => controller.abort(new Error('Request timed out.')), REQUEST_TIMEOUT)
-  signal?.addEventListener('abort', abort, { once: true })
 
   let response: Response
   try {
     response = await fetch(url, { ...init, signal: controller.signal })
   }
   catch (error) {
-    clearTimeout(timer)
-    signal?.removeEventListener('abort', abort)
     if (error instanceof TypeError) {
       throw new Error(`Cannot reach ${url}. Check your network and base URL.`)
     }
     throw error
   }
-
-  clearTimeout(timer)
-  signal?.removeEventListener('abort', abort)
+  finally {
+    clearTimeout(timer)
+  }
 
   if (!response.ok) {
     throw new Error(await describeError(response))

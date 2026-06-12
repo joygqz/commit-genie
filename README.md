@@ -9,7 +9,7 @@ Generate [Conventional Commits](https://www.conventionalcommits.org/) messages f
 ## Quick Start
 
 1. Install from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=joygqz.commit-genie)
-2. Set `commit-genie.apiKey` in Settings (plus `baseURL` and `model` if you don't use DeepSeek)
+2. Set `commit-genie.baseURL`, `commit-genie.apiKey` and `commit-genie.model` in Settings
 3. Stage your changes and click the ✨ button in the Source Control panel
 
 The message streams directly into the commit input box — edit it if needed, then commit.
@@ -23,14 +23,14 @@ The message streams directly into the commit input box — edit it if needed, th
 
 ## Settings
 
-| Setting | Default | Description |
-| --- | --- | --- |
-| `commit-genie.baseURL` | `https://api.deepseek.com` | API endpoint, e.g. `https://api.openai.com/v1`, `http://localhost:11434/v1` |
-| `commit-genie.apiKey` | — | API key |
-| `commit-genie.model` | `deepseek-chat` | Model ID |
-| `commit-genie.language` | `English` | Commit message language, e.g. `简体中文`, `日本語` |
-| `commit-genie.useEmoji` | `false` | Gitmoji prefix (✨ feat, 🐛 fix, …) |
-| `commit-genie.instructions` | — | Extra prompt instructions, e.g. team conventions |
+| Setting | Description |
+| --- | --- |
+| `commit-genie.baseURL` | API endpoint, e.g. `https://api.deepseek.com`, `https://api.openai.com/v1`, `http://localhost:11434/v1` |
+| `commit-genie.apiKey` | API key |
+| `commit-genie.model` | Model ID, e.g. `deepseek-chat` |
+| `commit-genie.language` | Commit message language (default `English`), e.g. `简体中文`, `日本語` |
+| `commit-genie.useEmoji` | Gitmoji prefix (✨ feat, 🐛 fix, …), default off |
+| `commit-genie.instructions` | Extra prompt instructions, e.g. team conventions |
 
 ## Commands
 
