@@ -1,61 +1,120 @@
-import type * as vscode from 'vscode'
-import { commands } from 'vscode'
-import * as Commands from './commands'
-import { COMMANDS } from './utils/constants'
-import { logger } from './utils/logger'
-import { tokenTracker } from './utils/token-tracker'
+import type { ExtensionContext, SourceControl } from 'vscode'
+import { commands, ConfigurationTarget, ProgressLocation, window, workspace } from 'vscode'
+import { getConfig } from './config'
+import { getDiff, getRepository } from './git'
+import { listModels, streamCompletion } from './llm'
+import { buildMessages } from './prompt'
 
-/**
- * 扩展激活函数
- * @param context 扩展上下文，用于管理扩展的生命周期
- */
-export function activate(context: vscode.ExtensionContext) {
-  logger.info('Commit Genie extension activated')
+let activeRequest: AbortController | undefined
 
-  // 初始化 Token 状态栏并加载持久化数据
-  const statusBarItem = tokenTracker.initialize(context)
-  context.subscriptions.push(statusBarItem)
-
-  // 注册命令
+export function activate(context: ExtensionContext) {
   context.subscriptions.push(
-    // 审查代码并生成 commit 消息
-    commands.registerCommand(
-      COMMANDS.REVIEW_AND_COMMIT,
-      Commands.reviewAndCommit.bind(null, context),
-    ),
-    // 选择可用模型
-    commands.registerCommand(
-      COMMANDS.SELECT_AVAILABLE_MODEL,
-      Commands.selectAvailableModel,
-    ),
-    // 显示 Token 统计
-    commands.registerCommand(
-      COMMANDS.SHOW_TOKEN_STATS,
-      Commands.showTokenStats,
-    ),
-    // 重置 Token 统计
-    commands.registerCommand(
-      COMMANDS.RESET_TOKEN_STATS,
-      Commands.resetTokenStats,
-    ),
-    // 生成日报
-    commands.registerCommand(
-      COMMANDS.GENERATE_DAILY_REPORT,
-      Commands.generateDailyReport.bind(null, context),
-    ),
+    commands.registerCommand('commit-genie.generate', generate),
+    commands.registerCommand('commit-genie.selectModel', selectModel),
   )
 }
 
-/**
- * 扩展注销函数
- * VS Code 允许返回 Promise，会等待异步操作完成
- */
-export async function deactivate() {
-  logger.info('Commit Genie extension deactivating')
+export function deactivate() {
+  activeRequest?.abort()
+}
 
-  // 确保 token 统计数据已保存
-  await tokenTracker.ensureSaved()
+async function generate(sourceControl?: SourceControl) {
+  if (!await ensureConfigured()) {
+    return
+  }
 
-  tokenTracker.dispose()
-  logger.dispose()
+  activeRequest?.abort()
+  const controller = new AbortController()
+  activeRequest = controller
+
+  try {
+    const repo = getRepository(sourceControl)
+    const diff = await getDiff(repo)
+    if (!diff) {
+      window.showInformationMessage('No changes to commit.')
+      return
+    }
+
+    await window.withProgress(
+      { location: ProgressLocation.Notification, title: 'Generating commit message…', cancellable: true },
+      async (_progress, token) => {
+        token.onCancellationRequested(() => controller.abort())
+
+        repo.inputBox.value = ''
+        const message = await streamCompletion(
+          buildMessages(diff),
+          chunk => repo.inputBox.value += chunk,
+          controller.signal,
+        )
+        repo.inputBox.value = cleanMessage(message)
+      },
+    )
+  }
+  catch (error) {
+    if (!controller.signal.aborted) {
+      showError(error)
+    }
+  }
+  finally {
+    if (activeRequest === controller) {
+      activeRequest = undefined
+    }
+  }
+}
+
+async function selectModel() {
+  if (!await ensureConfigured()) {
+    return
+  }
+
+  try {
+    const models = await window.withProgress(
+      { location: ProgressLocation.Notification, title: 'Loading models…' },
+      () => listModels(),
+    )
+    if (models.length === 0) {
+      window.showWarningMessage('The API returned no models.')
+      return
+    }
+
+    const current = getConfig().model
+    const picked = await window.showQuickPick(
+      models.map(id => ({ label: id, description: id === current ? 'current' : undefined })),
+      { placeHolder: 'Select a model' },
+    )
+    if (picked) {
+      await workspace.getConfiguration('commit-genie').update('model', picked.label, ConfigurationTarget.Global)
+    }
+  }
+  catch (error) {
+    showError(error)
+  }
+}
+
+async function ensureConfigured(): Promise<boolean> {
+  const { apiKey, baseURL, model } = getConfig()
+  if (apiKey && baseURL && model) {
+    return true
+  }
+
+  const open = 'Open Settings'
+  const action = await window.showErrorMessage('Commit Genie needs an API key, base URL and model.', open)
+  if (action === open) {
+    commands.executeCommand('workbench.action.openSettings', '@ext:joygqz.commit-genie')
+  }
+  return false
+}
+
+/** Strip code fences or quotes some models wrap around the message. */
+function cleanMessage(text: string): string {
+  return text
+    .trim()
+    .replace(/^```\w*\n?/, '')
+    .replace(/\n?```$/, '')
+    .replace(/^"([\s\S]*)"$/, '$1')
+    .trim()
+}
+
+function showError(error: unknown) {
+  window.showErrorMessage(error instanceof Error ? error.message : String(error))
 }

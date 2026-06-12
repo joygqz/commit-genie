@@ -4,7 +4,7 @@
   "displayName": "Commit Genie",
   "version": "3.1.1",
   "packageManager": "pnpm@10.17.1",
-  "description": "AI-powered code review and commit message generator",
+  "description": "AI commit message generator. Works with any OpenAI-compatible API.",
   "license": "SEE LICENSE IN LICENSE",
   "homepage": "https://github.com/joygqz/commit-genie#readme",
   "repository": {
@@ -15,41 +15,20 @@
     "url": "https://github.com/joygqz/commit-genie/issues"
   },
   "keywords": [
-    "提交信息",
-    "代码审查",
-    "智能助手",
-    "自动化",
-    "语义提交",
-    "生产力工具",
-    "代码生成",
-    "代码助手",
-    "代码质量",
-    "代码管理",
-    "代码规范",
     "git",
     "commit",
     "commit message",
-    "code review",
-    "ai",
-    "deepseek",
-    "openai",
-    "chatgpt",
     "conventional commits",
-    "scm",
-    "automation",
-    "productivity",
-    "developer tools",
-    "code quality",
     "gitmoji",
-    "llm",
-    "code analysis",
-    "pre-commit",
-    "version control"
+    "ai",
+    "openai",
+    "deepseek",
+    "scm",
+    "productivity"
   ],
   "categories": [
     "SCM Providers",
-    "AI",
-    "Other"
+    "AI"
   ],
   "main": "./dist/extension.js",
   "icon": "./images/logo.png",
@@ -57,140 +36,74 @@
     "CHANGELOG.md",
     "LICENSE",
     "dist/*",
-    "images/*",
-    "l10n/*.json",
-    "package.nls*.json"
+    "images/*"
   ],
-  "l10n": "./l10n",
   "engines": {
-    "vscode": "^1.75.0"
+    "vscode": "^1.84.0"
   },
-  "activationEvents": [
-    "onStartupFinished"
-  ],
+  "activationEvents": [],
   "contributes": {
     "commands": [
       {
         "category": "Commit Genie",
-        "command": "commit-genie.reviewAndCommit",
-        "title": "%command.reviewAndCommit.title%",
-        "icon": {
-          "light": "images/logo.svg",
-          "dark": "images/logo.svg"
-        }
+        "command": "commit-genie.generate",
+        "title": "Generate Commit Message",
+        "icon": "$(sparkle)"
       },
       {
         "category": "Commit Genie",
-        "command": "commit-genie.selectAvailableModel",
-        "title": "%command.selectAvailableModel.title%"
-      },
-      {
-        "category": "Commit Genie",
-        "command": "commit-genie.showTokenStats",
-        "title": "%command.showTokenStats.title%"
-      },
-      {
-        "category": "Commit Genie",
-        "command": "commit-genie.resetTokenStats",
-        "title": "%command.resetTokenStats.title%"
-      },
-      {
-        "category": "Commit Genie",
-        "command": "commit-genie.generateDailyReport",
-        "title": "%command.generateDailyReport.title%"
+        "command": "commit-genie.selectModel",
+        "title": "Select Model"
       }
     ],
     "configuration": {
       "title": "Commit Genie",
       "properties": {
-        "commit-genie.service.baseURL": {
-          "default": "https://api.deepseek.com",
-          "markdownDescription": "%configuration.service.baseURL.description%",
+        "commit-genie.baseURL": {
           "type": "string",
+          "default": "https://api.deepseek.com",
+          "markdownDescription": "API endpoint. Any OpenAI-compatible service works, e.g. `https://api.openai.com/v1`, `https://api.deepseek.com`, `http://localhost:11434/v1` (Ollama).",
           "order": 0
         },
-        "commit-genie.service.apiKey": {
-          "default": "",
-          "markdownDescription": "%configuration.service.apiKey.description%",
+        "commit-genie.apiKey": {
           "type": "string",
+          "default": "",
+          "description": "API key.",
           "order": 1
         },
-        "commit-genie.service.model": {
-          "default": "deepseek-chat",
-          "markdownDescription": "%configuration.service.model.description%",
+        "commit-genie.model": {
           "type": "string",
+          "default": "deepseek-chat",
+          "markdownDescription": "Model ID. Run `Commit Genie: Select Model` to pick from your provider.",
           "order": 2
         },
-        "commit-genie.format.outputLanguage": {
-          "default": "简体中文",
-          "markdownDescription": "%configuration.format.outputLanguage.description%",
-          "enum": [
-            "简体中文",
-            "繁體中文",
-            "にほんご",
-            "한국어",
-            "česky",
-            "Deutsch",
-            "française",
-            "italiano",
-            "Nederlands",
-            "português",
-            "tiếng Việt",
-            "English",
-            "español",
-            "Svenska",
-            "русский",
-            "bahasa",
-            "Polski",
-            "Türkçe",
-            "ไทย"
-          ],
+        "commit-genie.language": {
           "type": "string",
-          "order": 10
+          "default": "English",
+          "description": "Commit message language, e.g. English, 简体中文, 日本語.",
+          "order": 3
         },
-        "commit-genie.review.customPrompt": {
-          "default": "",
-          "markdownDescription": "%configuration.review.customPrompt.description%",
-          "type": "string",
-          "editPresentation": "multilineText",
-          "order": 20
-        },
-        "commit-genie.commit.enableEmojiPrefix": {
-          "default": false,
-          "markdownDescription": "%configuration.commit.enableEmojiPrefix.description%",
+        "commit-genie.useEmoji": {
           "type": "boolean",
-          "order": 30
+          "default": false,
+          "description": "Prefix the commit type with a matching gitmoji (✨ feat, 🐛 fix, …).",
+          "order": 4
         },
-        "commit-genie.commit.customPrompt": {
-          "default": "",
-          "markdownDescription": "%configuration.commit.customPrompt.description%",
+        "commit-genie.instructions": {
           "type": "string",
-          "editPresentation": "multilineText",
-          "order": 31
-        },
-        "commit-genie.report.maxWords": {
-          "default": 200,
-          "markdownDescription": "%configuration.report.maxWords.description%",
-          "type": "number",
-          "minimum": 50,
-          "maximum": 1000,
-          "order": 40
-        },
-        "commit-genie.report.customPrompt": {
           "default": "",
-          "markdownDescription": "%configuration.report.customPrompt.description%",
-          "type": "string",
           "editPresentation": "multilineText",
-          "order": 41
+          "description": "Extra instructions appended to the prompt, e.g. team conventions or ticket-number format.",
+          "order": 5
         }
       }
     },
     "menus": {
       "scm/title": [
         {
-          "command": "commit-genie.reviewAndCommit",
+          "command": "commit-genie.generate",
           "group": "navigation",
-          "when": "scmProvider === git"
+          "when": "scmProvider == git"
         }
       ]
     }
@@ -199,7 +112,6 @@
     "vscode:prepublish": "pnpm run package",
     "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
     "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
-    "l10n": "npx @vscode/l10n-dev export --outDir ./l10n ./src",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
@@ -215,18 +127,15 @@
   ],
   "devDependencies": {
     "@antfu/eslint-config": "^5.4.1",
-    "@types/mocha": "^10.0.10",
     "@types/node": "~22.18.8",
-    "@types/vscode": "^1.75.0",
-    "@vscode/l10n-dev": "^0.0.35",
+    "@types/vscode": "^1.84.0",
     "@vscode/vsce": "^3.6.2",
+    "baseline-browser-mapping": "^2.10.36",
     "bumpp": "^10.2.3",
     "conventional-changelog-cli": "^5.0.0",
     "esbuild": "^0.25.10",
     "eslint": "^9.37.0",
     "npm-run-all": "^4.1.5",
-    "openai": "^6.1.0",
-    "simple-git": "^3.28.0",
     "typescript": "^5.9.3"
   }
 }

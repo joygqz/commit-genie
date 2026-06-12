@@ -6,6 +6,9 @@
     ],
     "rootDir": "src",
     "module": "Node16",
+    "types": [
+      "node"
+    ],
     "strict": true, /* enable all strict type-checking options */
     "noFallthroughCasesInSwitch": true, /* Report errors for fallthrough cases in switch statement. */
     /* Additional Checks */
