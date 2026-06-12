@@ -1,5 +1,5 @@
+import type { Config } from './config'
 import type { ChatMessage } from './llm'
-import { getConfig } from './config'
 
 // Static prefix — keep it byte-identical across requests so providers with
 // automatic prefix caching (OpenAI, DeepSeek, …) can reuse it. All
@@ -20,8 +20,8 @@ Rules:
 - body: only when the change needs context — "- " bullets explaining what and why, wrapped at 100 characters; otherwise output the subject line alone
 - describe only what the diff actually changes; never invent details`
 
-export function buildMessages(diff: string): ChatMessage[] {
-  const { language, useEmoji, instructions } = getConfig()
+export function buildMessages(diff: string, config: Config): ChatMessage[] {
+  const { language, useEmoji, instructions } = config
 
   const extras = [
     useEmoji && '- prefix the subject with the gitmoji for the type: ✨ feat, 🐛 fix, 📝 docs, 💄 style, ♻️ refactor, ⚡ perf, ✅ test, 📦 build, 👷 ci, 🔧 chore, ⏪ revert',

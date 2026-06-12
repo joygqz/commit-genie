@@ -5,6 +5,8 @@ const production = process.argv.includes('--production')
 const watch = process.argv.includes('--watch')
 
 /**
+ * Emits the begin/end markers VS Code's `$esbuild-watch` problem matcher
+ * scans for, so build errors show up in the Problems panel while watching.
  * @type {import('esbuild').Plugin}
  */
 const esbuildProblemMatcherPlugin = {
@@ -40,10 +42,7 @@ async function main() {
     outfile: 'dist/extension.js',
     external: ['vscode'],
     logLevel: 'silent',
-    plugins: [
-      /* add to the end of plugins array */
-      esbuildProblemMatcherPlugin,
-    ],
+    plugins: watch ? [esbuildProblemMatcherPlugin] : [],
   })
   if (watch) {
     await ctx.watch()

@@ -8,9 +8,7 @@ on:
 jobs:
   publish-extension:
     permissions:
-      id-token: write
       contents: write
-      actions: write
 
     runs-on: ubuntu-latest
     steps:

@@ -1,4 +1,4 @@
-import { getConfig } from './config'
+import type { Config } from './config'
 
 export interface ChatMessage {
   role: 'system' | 'user'
@@ -12,11 +12,12 @@ const REQUEST_TIMEOUT = 120_000
  * Returns the full response text once the stream ends.
  */
 export async function streamCompletion(
+  config: Config,
   messages: ChatMessage[],
   onChunk: (text: string) => void,
   signal: AbortSignal,
 ): Promise<string> {
-  const { apiKey, baseURL, model } = getConfig()
+  const { apiKey, baseURL, model } = config
 
   const response = await request(`${baseURL}/chat/completions`, signal, {
     method: 'POST',
@@ -71,8 +72,8 @@ export async function streamCompletion(
   return content
 }
 
-export async function listModels(signal?: AbortSignal): Promise<string[]> {
-  const { apiKey, baseURL } = getConfig()
+export async function listModels(config: Config, signal?: AbortSignal): Promise<string[]> {
+  const { apiKey, baseURL } = config
 
   const response = await request(`${baseURL}/models`, signal, {
     headers: { Authorization: `Bearer ${apiKey}` },

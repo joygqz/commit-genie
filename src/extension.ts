@@ -1,4 +1,5 @@
 import type { ExtensionContext, SourceControl } from 'vscode'
+import type { Config } from './config'
 import { commands, ConfigurationTarget, ProgressLocation, window, workspace } from 'vscode'
 import { getConfig } from './config'
 import { getDiff, getRepository } from './git'
@@ -19,7 +20,8 @@ export function deactivate() {
 }
 
 async function generate(sourceControl?: SourceControl) {
-  if (!await ensureConfigured()) {
+  const config = await requireConfig()
+  if (!config) {
     return
   }
 
@@ -42,7 +44,8 @@ async function generate(sourceControl?: SourceControl) {
 
         repo.inputBox.value = ''
         const message = await streamCompletion(
-          buildMessages(diff),
+          config,
+          buildMessages(diff, config),
           chunk => repo.inputBox.value += chunk,
           controller.signal,
         )
@@ -63,23 +66,23 @@ async function generate(sourceControl?: SourceControl) {
 }
 
 async function selectModel() {
-  if (!await ensureConfigured()) {
+  const config = await requireConfig()
+  if (!config) {
     return
   }
 
   try {
     const models = await window.withProgress(
       { location: ProgressLocation.Notification, title: 'Loading models…' },
-      () => listModels(),
+      () => listModels(config),
     )
     if (models.length === 0) {
       window.showWarningMessage('The API returned no models.')
       return
     }
 
-    const current = getConfig().model
     const picked = await window.showQuickPick(
-      models.map(id => ({ label: id, description: id === current ? 'current' : undefined })),
+      models.map(id => ({ label: id, description: id === config.model ? 'current' : undefined })),
       { placeHolder: 'Select a model' },
     )
     if (picked) {
@@ -91,10 +94,10 @@ async function selectModel() {
   }
 }
 
-async function ensureConfigured(): Promise<boolean> {
-  const { apiKey, baseURL, model } = getConfig()
-  if (apiKey && baseURL && model) {
-    return true
+async function requireConfig(): Promise<Config | undefined> {
+  const config = getConfig()
+  if (config.apiKey && config.baseURL && config.model) {
+    return config
   }
 
   const open = 'Open Settings'
@@ -102,7 +105,7 @@ async function ensureConfigured(): Promise<boolean> {
   if (action === open) {
     commands.executeCommand('workbench.action.openSettings', '@ext:joygqz.commit-genie')
   }
-  return false
+  return undefined
 }
 
 /** Strip code fences or quotes some models wrap around the message. */

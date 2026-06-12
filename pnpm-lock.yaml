@@ -20,9 +20,6 @@ importers:
       '@vscode/vsce':
         specifier: ^3.6.2
         version: 3.6.2
-      baseline-browser-mapping:
-        specifier: ^2.10.36
-        version: 2.10.36
       bumpp:
         specifier: ^10.2.3
         version: 10.2.3
