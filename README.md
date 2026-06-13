@@ -24,8 +24,8 @@ The message streams directly into the commit input box — edit it if needed, th
 | `commit-genie.baseURL` | API endpoint, e.g. `https://api.deepseek.com`, `https://api.openai.com/v1`, `http://localhost:11434/v1` |
 | `commit-genie.apiKey` | API key |
 | `commit-genie.model` | Model ID, e.g. `deepseek-v4-pro` |
-| `commit-genie.language` | Commit message language (default `English`), e.g. `简体中文`, `日本語` |
-| `commit-genie.useEmoji` | Gitmoji prefix (✨ feat, 🐛 fix, …), default off |
+| `commit-genie.language` | Commit message language, e.g. `English`, `简体中文`, `日本語` |
+| `commit-genie.useEmoji` | Gitmoji prefix (✨ feat, 🐛 fix, …) |
 | `commit-genie.instructions` | Extra prompt instructions, e.g. team conventions |
 
 ## Commands
