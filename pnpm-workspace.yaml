@@ -1,12 +1,12 @@
+minimumReleaseAgeExclude:
+  - eslint@10.5.0
+
 shellEmulator: true
 
 trustPolicy: no-downgrade
 
 overrides:
   semver@5.7.2: ^7.8.4
-
-minimumReleaseAgeExclude:
-  - eslint@10.5.0
 
 allowBuilds:
   '@vscode/vsce-sign': true
