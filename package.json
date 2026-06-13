@@ -105,6 +105,7 @@
     }
   },
   "scripts": {
+    "prepare": "simple-git-hooks",
     "vscode:prepublish": "pnpm run package",
     "package": "pnpm run check-types && pnpm run lint && node build.js --production",
     "compile": "pnpm run check-types && pnpm run lint && node build.js",
@@ -127,8 +128,16 @@
     "@vscode/vsce": "^3.9.2",
     "bumpp": "^11.1.0",
     "eslint": "^10.5.0",
+    "lint-staged": "^17.0.7",
     "npm-run-all2": "^8.0.4",
     "rolldown": "^1.1.1",
+    "simple-git-hooks": "^2.13.1",
     "typescript": "^6.0.3"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm run check-types && pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*": "eslint --fix"
   }
 }

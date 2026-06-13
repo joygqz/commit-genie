@@ -11,3 +11,4 @@ overrides:
 allowBuilds:
   '@vscode/vsce-sign': true
   keytar: true
+  simple-git-hooks: true
