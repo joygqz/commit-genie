@@ -2,8 +2,6 @@
   "search.exclude": {
     "dist": true
   },
-  // Turn off tsc task auto detection since we have the necessary tasks as npm scripts
-  "typescript.tsc.autoDetect": "off",
 
   // Disable the default formatter, use eslint instead
   "prettier.enable": false,
@@ -29,28 +27,13 @@
     { "rule": "*semi", "severity": "off", "fixable": true }
   ],
 
-  // Enable eslint for all supported languages
+  // Enable eslint for the languages this project actually uses
   "eslint.validate": [
     "javascript",
-    "javascriptreact",
     "typescript",
-    "typescriptreact",
-    "vue",
-    "html",
-    "markdown",
     "json",
     "jsonc",
     "yaml",
-    "toml",
-    "xml",
-    "gql",
-    "graphql",
-    "astro",
-    "svelte",
-    "css",
-    "less",
-    "scss",
-    "pcss",
-    "postcss"
+    "markdown"
   ]
 }
