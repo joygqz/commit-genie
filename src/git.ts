@@ -40,13 +40,15 @@ export function getRepository(sourceControl?: SourceControl): Repository {
 
 /**
  * Staged diff, falling back to working-tree changes when nothing is staged.
- * Lock files and binary files are dropped to save tokens.
+ * Lock files are dropped to save tokens; binary files are collapsed into a
+ * one-line change summary so the model still knows they changed.
  */
 export async function getDiff(repo: Repository): Promise<string> {
   const diff = (await repo.diff(true)) || (await repo.diff(false))
   const filtered = diff
     .split(/^(?=diff --git )/m)
-    .filter(section => !isNoise(section))
+    .map(summarizeSection)
+    .filter(Boolean)
     .join('')
     .trim()
 
@@ -55,12 +57,31 @@ export async function getDiff(repo: Repository): Promise<string> {
     : filtered
 }
 
-function isNoise(section: string): boolean {
-  const fileName = section
-    .slice(0, section.indexOf('\n'))
-    .match(/ b\/(.+?)"?$/)?.[1]
-    ?.split('/')
-    .pop() ?? ''
+/**
+ * Returns the section unchanged, an empty string to drop it, or a compact
+ * summary line for binary files (whose raw diff carries no useful content).
+ */
+function summarizeSection(section: string): string {
+  if (!section) {
+    return section
+  }
 
-  return LOCK_FILES.has(fileName) || /^Binary files .* differ$/m.test(section)
+  const path = section
+    .slice(0, section.indexOf('\n'))
+    .match(/ b\/(.+?)"?$/)?.[1] ?? ''
+
+  if (LOCK_FILES.has(path.split('/').pop() ?? '')) {
+    return ''
+  }
+
+  if (/^Binary files .* differ$/m.test(section)) {
+    const change = /^new file mode/m.test(section)
+      ? 'added'
+      : /^deleted file mode/m.test(section)
+        ? 'deleted'
+        : 'modified'
+    return `Binary file ${change}: ${path}\n`
+  }
+
+  return section
 }
