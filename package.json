@@ -33,6 +33,7 @@
   "main": "./dist/extension.js",
   "icon": "./images/logo.png",
   "files": [
+    "CHANGELOG.md",
     "LICENSE",
     "dist/*",
     "images/*"
