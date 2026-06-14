@@ -39,7 +39,7 @@
     "images/*"
   ],
   "engines": {
-    "vscode": "^1.120.0"
+    "vscode": "^1.90.0"
   },
   "activationEvents": [],
   "contributes": {
@@ -124,7 +124,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^9.0.0",
     "@types/node": "~24.13.2",
-    "@types/vscode": "^1.120.0",
+    "@types/vscode": "~1.90.0",
     "@vscode/vsce": "^3.9.2",
     "bumpp": "^11.1.0",
     "eslint": "^10.5.0",
