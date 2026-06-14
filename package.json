@@ -38,8 +38,7 @@
     "images/*"
   ],
   "engines": {
-    "vscode": "^1.120.0",
-    "node": ">=24"
+    "vscode": "^1.120.0"
   },
   "activationEvents": [],
   "contributes": {
