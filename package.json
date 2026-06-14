@@ -89,7 +89,7 @@
         "commit-genie.instructions": {
           "type": "string",
           "editPresentation": "multilineText",
-          "description": "Extra instructions appended to the prompt, e.g. team conventions or ticket-number format.",
+          "description": "Extra instructions appended to the prompt, such as team conventions or ticket-number format.",
           "order": 5
         }
       }
