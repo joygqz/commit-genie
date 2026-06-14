@@ -6,7 +6,7 @@ Generate [Conventional Commits](https://www.conventionalcommits.org/) messages f
 
 1. Install from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=joygqz.commit-genie)
 2. Set `commit-genie.baseURL`, `commit-genie.apiKey` and `commit-genie.model` in Settings
-3. Stage your changes and click the ✨ button in the Source Control panel
+3. Stage your changes and click the sparkle icon button in the Source Control panel
 
 The message streams directly into the commit input box — edit it if needed, then commit.
 
@@ -30,7 +30,7 @@ The message streams directly into the commit input box — edit it if needed, th
 
 ## Commands
 
-- `Commit Genie: Generate Commit Message` — also available as the ✨ button in Source Control
+- `Commit Genie: Generate Commit Message` — also available as the sparkle icon button in Source Control
 - `Commit Genie: Select Model` — pick from the models your provider offers
 
 ## License
