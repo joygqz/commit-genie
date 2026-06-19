@@ -13,7 +13,7 @@ The message streams directly into the commit input box — edit it if needed, th
 ## Features
 
 - **Any provider** — point `baseURL` at any OpenAI-compatible endpoint, including local models via Ollama
-- **Token-efficient** — lock files and binaries are stripped from the diff; the prompt is built for provider-side prefix caching
+- **Token-efficient** — lock files and binaries are collapsed to a one-line change summary; the prompt is built for provider-side prefix caching
 - **Streaming** — watch the message appear as it's generated, cancel anytime
 - **Falls back to unstaged changes** when nothing is staged
 
