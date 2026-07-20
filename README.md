@@ -28,7 +28,7 @@ The message streams straight into the commit input box — edit it if needed, th
 | Setting | Description | Default |
 | --- | --- | --- |
 | `commit-genie.baseURL` | API endpoint, e.g. `https://api.deepseek.com`, `https://api.openai.com/v1`, `http://localhost:11434/v1` | — |
-| `commit-genie.apiKey` | API key. Not needed for local endpoints such as Ollama | — |
+| `commit-genie.apiKey` | API key. Leave empty for local endpoints such as Ollama | — |
 | `commit-genie.model` | Model ID, e.g. `deepseek-v4-pro`. Best set via **Select Model** | — |
 | `commit-genie.language` | Language for the subject and body. Type, scope and code identifiers stay in English | `English` |
 | `commit-genie.useEmoji` | Prefix the commit type with a gitmoji, e.g. `✨ feat: …` | `false` |

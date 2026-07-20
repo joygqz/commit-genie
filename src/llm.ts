@@ -136,7 +136,7 @@ async function describeError(response: Response): Promise<string> {
   }
 
   const hints: Record<number, string> = {
-    401: 'Check your API key.',
+    401: 'Check that your API key is set and valid.',
     403: 'Your API key does not have access to this endpoint or model.',
     404: 'Check your base URL and model.',
     429: 'Rate limited — try again in a moment.',

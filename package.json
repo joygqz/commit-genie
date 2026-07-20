@@ -66,7 +66,7 @@
         },
         "commit-genie.apiKey": {
           "type": "string",
-          "description": "API key. Not needed for local endpoints such as Ollama.",
+          "description": "API key. Leave empty for local endpoints such as Ollama.",
           "order": 1
         },
         "commit-genie.model": {
