@@ -118,50 +118,41 @@ async function request(url: string, signal: AbortSignal | undefined, init: Reque
   return response
 }
 
-// Our own wording for the statuses users actually hit, phrased as the next
-// thing to do. It replaces the provider's message rather than joining it,
-// which only ever restated the same thing in worse English.
-const HINTS: Record<number, string> = {
-  401: 'Check that your API key is set and valid.',
-  403: 'Your API key does not have access to this endpoint or model.',
-  404: 'Check your base URL and model.',
-  429: 'Rate limited — try again in a moment.',
-}
-
+/**
+ * Reports the status alongside whatever the provider said, e.g.
+ * "API request failed (404). The model `gpt-5` does not exist."
+ * Providers name the actual problem far more precisely than any generic
+ * per-status advice we could write here, so nothing is added on top.
+ */
 async function describeError(response: Response): Promise<string> {
   const summary = `API request failed (${response.status}).`
-  // Only fall back to the provider's own words for statuses we have nothing
-  // useful to say about.
-  const hint = HINTS[response.status] ?? sentence(await readDetail(response))
-  return hint ? `${summary} ${hint}` : summary
+  const detail = await readDetail(response)
+  return detail ? `${summary} ${detail}` : summary
 }
 
-/** The provider's error message, or '' when the body is missing or unusable. */
+/** The provider's message as one clipped, punctuated sentence; '' if unusable. */
 async function readDetail(response: Response): Promise<string> {
+  const body = (await response.text().catch(() => '')).trim()
+  // Gateway HTML error pages carry no message worth showing.
+  if (!body || body.startsWith('<')) {
+    return ''
+  }
+
+  // Keep the raw body when it is not JSON, or carries no `error.message`.
+  let message: unknown = body
   try {
-    const body = (await response.text()).trim()
-    try {
-      return JSON.parse(body)?.error?.message ?? body
-    }
-    catch {
-      // Non-JSON bodies are usually gateway HTML error pages — showing their
-      // markup in a notification helps nobody, so drop them.
-      return body.startsWith('<') ? '' : body
-    }
+    message = JSON.parse(body)?.error?.message
   }
   catch {
-    return ''
+    // Not JSON — the body itself is the message.
   }
-}
 
-/** Collapses, clips and terminates a raw message so it reads as one sentence. */
-function sentence(text: string): string {
-  const collapsed = text.replace(/\s+/g, ' ').trim()
-  if (!collapsed) {
+  const text = (typeof message === 'string' ? message : body).replace(/\s+/g, ' ').trim()
+  if (!text) {
     return ''
   }
-  if (collapsed.length > 300) {
-    return `${collapsed.slice(0, 300)}…`
+  if (text.length > 300) {
+    return `${text.slice(0, 300)}…`
   }
-  return /[.!?:;…。！？]$/.test(collapsed) ? collapsed : `${collapsed}.`
+  return /[.!?:;…。！？]$/.test(text) ? text : `${text}.`
 }
