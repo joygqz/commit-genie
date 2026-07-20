@@ -71,7 +71,7 @@
         },
         "commit-genie.model": {
           "type": "string",
-          "markdownDescription": "Model ID, e.g. `deepseek-chat`. Run `Commit Genie: Select Model` to pick from your provider.",
+          "markdownDescription": "Model ID, e.g. `deepseek-v4-pro`. Run `Commit Genie: Select Model` to pick from your provider.",
           "order": 2
         },
         "commit-genie.language": {
