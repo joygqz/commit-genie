@@ -9,7 +9,7 @@ Generate [Conventional Commits](https://www.conventionalcommits.org/) messages f
 ## Quick Start
 
 1. Install from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=joygqz.commit-genie)
-2. Set `commit-genie.baseURL` and `commit-genie.apiKey` in Settings
+2. Set `commit-genie.baseURL` and `commit-genie.apiKey` in Settings (local endpoints need no key)
 3. Run **Commit Genie: Select Model** from the Command Palette to pick a model
 4. Stage your changes and click the sparkle icon in the Source Control title bar
 
@@ -28,7 +28,7 @@ The message streams straight into the commit input box — edit it if needed, th
 | Setting | Description | Default |
 | --- | --- | --- |
 | `commit-genie.baseURL` | API endpoint, e.g. `https://api.deepseek.com`, `https://api.openai.com/v1`, `http://localhost:11434/v1` | — |
-| `commit-genie.apiKey` | API key. Providers that ignore it, such as Ollama, accept any value | — |
+| `commit-genie.apiKey` | API key. Not needed for local endpoints such as Ollama | — |
 | `commit-genie.model` | Model ID, e.g. `deepseek-chat`. Best set via **Select Model** | — |
 | `commit-genie.language` | Language for the subject and body. Type, scope and code identifiers stay in English | `English` |
 | `commit-genie.useEmoji` | Prefix the commit type with a gitmoji, e.g. `✨ feat: …` | `false` |

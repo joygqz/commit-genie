@@ -1,7 +1,7 @@
 import type { ExtensionContext, SourceControl } from 'vscode'
 import type { Config } from './config'
 import { commands, ConfigurationTarget, ProgressLocation, window, workspace } from 'vscode'
-import { getConfig } from './config'
+import { getConfig, requiresApiKey } from './config'
 import { getDiff, getRepository } from './git'
 import { listModels, streamCompletion } from './llm'
 import { buildMessages } from './prompt'
@@ -96,19 +96,32 @@ async function selectModel() {
 
 async function requireConfig({ needModel = true } = {}): Promise<Config | undefined> {
   const config = getConfig()
-  if (config.apiKey && config.baseURL && (!needModel || config.model)) {
+  const missing = [
+    !config.baseURL && 'a base URL',
+    !config.apiKey && requiresApiKey(config.baseURL) && 'an API key',
+    needModel && !config.model && 'a model',
+  ].filter(item => typeof item === 'string')
+
+  if (missing.length === 0) {
     return config
   }
 
   const open = 'Open Settings'
   const action = await window.showErrorMessage(
-    needModel ? 'Commit Genie needs a base URL, API key and model.' : 'Commit Genie needs a base URL and API key.',
+    `Commit Genie needs ${formatList(missing)}.`,
     open,
   )
   if (action === open) {
     commands.executeCommand('workbench.action.openSettings', '@ext:joygqz.commit-genie')
   }
   return undefined
+}
+
+/** "a base URL", "an API key" and "a model" → "a base URL, an API key and a model". */
+function formatList(items: string[]): string {
+  return items.length > 1
+    ? `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`
+    : items[0]
 }
 
 /** Strip code fences or quotes some models wrap around the message. */

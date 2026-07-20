@@ -8,6 +8,14 @@ export interface ChatMessage {
 const REQUEST_TIMEOUT = 120_000
 
 /**
+ * Omits the header entirely when no key is set — local servers need no auth,
+ * and some reject a malformed `Bearer ` with an empty token.
+ */
+function authHeader(apiKey: string): Record<string, string> {
+  return apiKey ? { Authorization: `Bearer ${apiKey}` } : {}
+}
+
+/**
  * Streams a chat completion from any OpenAI-compatible endpoint.
  * Returns the full response text once the stream ends.
  */
@@ -23,7 +31,7 @@ export async function streamCompletion(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
+      ...authHeader(apiKey),
     },
     body: JSON.stringify({ model, messages, stream: true }),
   })
@@ -76,7 +84,7 @@ export async function listModels(config: Config, signal?: AbortSignal): Promise<
   const { apiKey, baseURL } = config
 
   const response = await request(`${baseURL}/models`, signal, {
-    headers: { Authorization: `Bearer ${apiKey}` },
+    headers: authHeader(apiKey),
   })
 
   const body = await response.json() as { data?: { id: string }[] }
