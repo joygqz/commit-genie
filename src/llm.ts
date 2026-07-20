@@ -118,47 +118,50 @@ async function request(url: string, signal: AbortSignal | undefined, init: Reque
   return response
 }
 
-/**
- * Clips a provider message and gives it a sentence ending, so it does not run
- * into the hint that follows it. Providers rarely punctuate their messages.
- */
-function punctuate(text: string): string {
-  if (text.length > 300) {
-    return `${text.slice(0, 300)}…`
-  }
-  return /[.!?:;…。！？]$/.test(text) ? text : `${text}.`
+// Our own wording for the statuses users actually hit, phrased as the next
+// thing to do. It replaces the provider's message rather than joining it,
+// which only ever restated the same thing in worse English.
+const HINTS: Record<number, string> = {
+  401: 'Check that your API key is set and valid.',
+  403: 'Your API key does not have access to this endpoint or model.',
+  404: 'Check your base URL and model.',
+  429: 'Rate limited — try again in a moment.',
 }
 
 async function describeError(response: Response): Promise<string> {
-  let detail = ''
+  const summary = `API request failed (${response.status}).`
+  // Only fall back to the provider's own words for statuses we have nothing
+  // useful to say about.
+  const hint = HINTS[response.status] ?? sentence(await readDetail(response))
+  return hint ? `${summary} ${hint}` : summary
+}
+
+/** The provider's error message, or '' when the body is missing or unusable. */
+async function readDetail(response: Response): Promise<string> {
   try {
     const body = (await response.text()).trim()
     try {
-      detail = JSON.parse(body)?.error?.message ?? body
+      return JSON.parse(body)?.error?.message ?? body
     }
     catch {
       // Non-JSON bodies are usually gateway HTML error pages — showing their
       // markup in a notification helps nobody, so drop them.
-      detail = body.startsWith('<') ? '' : body
+      return body.startsWith('<') ? '' : body
     }
   }
   catch {
-    // unreadable body
+    return ''
   }
+}
 
-  const hints: Record<number, string> = {
-    401: 'Check that your API key is set and valid.',
-    403: 'Your API key does not have access to this endpoint or model.',
-    404: 'Check your base URL and model.',
-    429: 'Rate limited — try again in a moment.',
+/** Collapses, clips and terminates a raw message so it reads as one sentence. */
+function sentence(text: string): string {
+  const collapsed = text.replace(/\s+/g, ' ').trim()
+  if (!collapsed) {
+    return ''
   }
-
-  const parts = [`API request failed (${response.status}).`]
-  if (detail) {
-    parts.push(punctuate(detail.replace(/\s+/g, ' ')))
+  if (collapsed.length > 300) {
+    return `${collapsed.slice(0, 300)}…`
   }
-  if (hints[response.status]) {
-    parts.push(hints[response.status])
-  }
-  return parts.join(' ')
+  return /[.!?:;…。！？]$/.test(collapsed) ? collapsed : `${collapsed}.`
 }
