@@ -118,6 +118,17 @@ async function request(url: string, signal: AbortSignal | undefined, init: Reque
   return response
 }
 
+/**
+ * Clips a provider message and gives it a sentence ending, so it does not run
+ * into the hint that follows it. Providers rarely punctuate their messages.
+ */
+function punctuate(text: string): string {
+  if (text.length > 300) {
+    return `${text.slice(0, 300)}…`
+  }
+  return /[.!?:;…。！？]$/.test(text) ? text : `${text}.`
+}
+
 async function describeError(response: Response): Promise<string> {
   let detail = ''
   try {
@@ -144,7 +155,7 @@ async function describeError(response: Response): Promise<string> {
 
   const parts = [`API request failed (${response.status}).`]
   if (detail) {
-    parts.push(detail.replace(/\s+/g, ' ').slice(0, 300))
+    parts.push(punctuate(detail.replace(/\s+/g, ' ')))
   }
   if (hints[response.status]) {
     parts.push(hints[response.status])
