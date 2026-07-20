@@ -38,10 +38,8 @@ async function generate(sourceControl?: SourceControl) {
     }
 
     await window.withProgress(
-      { location: ProgressLocation.Notification, title: 'Generating commit message…', cancellable: true },
-      async (_progress, token) => {
-        token.onCancellationRequested(() => controller.abort())
-
+      { location: ProgressLocation.SourceControl, title: 'Generating commit message…' },
+      async () => {
         repo.inputBox.value = ''
         const message = await streamCompletion(
           config,
@@ -79,13 +77,13 @@ async function selectModel() {
       () => listModels(config),
     )
     if (models.length === 0) {
-      window.showWarningMessage('The API returned no models.')
+      window.showWarningMessage('The provider returned no models.')
       return
     }
 
     const picked = await window.showQuickPick(
-      models.map(id => ({ label: id, description: id === config.model ? 'current' : undefined })),
-      { placeHolder: 'Select a model' },
+      models.map(id => ({ label: id, description: id === config.model ? 'Current' : undefined })),
+      { title: 'Select Model', placeHolder: 'Pick the model used to generate commit messages' },
     )
     if (picked) {
       await workspace.getConfiguration('commit-genie').update('model', picked.label, ConfigurationTarget.Global)
@@ -104,7 +102,7 @@ async function requireConfig({ needModel = true } = {}): Promise<Config | undefi
 
   const open = 'Open Settings'
   const action = await window.showErrorMessage(
-    needModel ? 'Commit Genie needs an API key, base URL and model.' : 'Commit Genie needs an API key and base URL.',
+    needModel ? 'Commit Genie needs a base URL, API key and model.' : 'Commit Genie needs a base URL and API key.',
     open,
   )
   if (action === open) {

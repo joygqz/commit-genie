@@ -53,7 +53,7 @@ export async function getDiff(repo: Repository): Promise<string> {
     .trim()
 
   return filtered.length > MAX_DIFF_LENGTH
-    ? `${filtered.slice(0, MAX_DIFF_LENGTH)}\n\n[diff truncated]`
+    ? `${filtered.slice(0, MAX_DIFF_LENGTH)}\n\n[diff truncated — the remaining changes were omitted]`
     : filtered
 }
 

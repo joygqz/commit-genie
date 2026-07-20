@@ -29,7 +29,7 @@ export async function streamCompletion(
   })
 
   if (!response.body) {
-    throw new Error('API returned an empty response body.')
+    throw new Error('The API returned an empty response body.')
   }
 
   const reader = response.body.getReader()
@@ -88,7 +88,7 @@ async function request(url: string, signal: AbortSignal | undefined, init: Reque
   // aborting also cancels body streaming — not just the initial fetch.
   const controller = new AbortController()
   signal?.addEventListener('abort', () => controller.abort(), { once: true })
-  const timer = setTimeout(() => controller.abort(new Error('Request timed out.')), REQUEST_TIMEOUT)
+  const timer = setTimeout(() => controller.abort(new Error(`Request timed out after ${REQUEST_TIMEOUT / 1000}s.`)), REQUEST_TIMEOUT)
 
   let response: Response
   try {
@@ -113,12 +113,14 @@ async function request(url: string, signal: AbortSignal | undefined, init: Reque
 async function describeError(response: Response): Promise<string> {
   let detail = ''
   try {
-    const body = await response.text()
+    const body = (await response.text()).trim()
     try {
       detail = JSON.parse(body)?.error?.message ?? body
     }
     catch {
-      detail = body
+      // Non-JSON bodies are usually gateway HTML error pages — showing their
+      // markup in a notification helps nobody, so drop them.
+      detail = body.startsWith('<') ? '' : body
     }
   }
   catch {
@@ -127,13 +129,14 @@ async function describeError(response: Response): Promise<string> {
 
   const hints: Record<number, string> = {
     401: 'Check your API key.',
+    403: 'Your API key does not have access to this endpoint or model.',
     404: 'Check your base URL and model.',
-    429: 'Rate limited — try again later.',
+    429: 'Rate limited — try again in a moment.',
   }
 
   const parts = [`API request failed (${response.status}).`]
   if (detail) {
-    parts.push(detail.slice(0, 300))
+    parts.push(detail.replace(/\s+/g, ' ').slice(0, 300))
   }
   if (hints[response.status]) {
     parts.push(hints[response.status])

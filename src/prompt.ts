@@ -16,7 +16,7 @@ Format (Conventional Commits):
 Rules:
 - type: feat, fix, docs, style, refactor, perf, test, build, ci, chore or revert
 - scope: the main module or area touched; omit when unclear
-- subject: imperative mood, concise, no trailing period, at most 72 characters
+- subject: imperative mood, concise, no trailing period; keep the whole first line within 72 characters
 - body: only when the change needs context — "- " bullets explaining what and why, wrapped at 100 characters; otherwise output the subject line alone
 - describe only what the diff actually changes; never invent details`
 
@@ -24,7 +24,7 @@ export function buildMessages(diff: string, config: Config): ChatMessage[] {
   const { language, useEmoji, instructions } = config
 
   const extras = [
-    useEmoji && '- prefix the subject with the gitmoji for the type: ✨ feat, 🐛 fix, 📝 docs, 💄 style, ♻️ refactor, ⚡ perf, ✅ test, 📦 build, 👷 ci, 🔧 chore, ⏪ revert',
+    useEmoji && '- prefix the type with its gitmoji, as in "✨ feat(api): add retry": ✨ feat, 🐛 fix, 📝 docs, 💄 style, ♻️ refactor, ⚡ perf, ✅ test, 📦 build, 👷 ci, 🔧 chore, ⏪ revert',
     language && `- write the subject and body in ${language}; keep type, scope and code identifiers in English`,
     instructions && `\nAdditional instructions (highest priority):\n${instructions}`,
   ].filter(Boolean).join('\n')
