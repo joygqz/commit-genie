@@ -2,10 +2,6 @@
 
 Generate [Conventional Commits](https://www.conventionalcommits.org/) messages from your changes with AI. Works with any OpenAI-compatible API — DeepSeek, OpenAI, OpenRouter, Groq, Ollama, and more.
 
-[![Version](https://img.shields.io/visual-studio-marketplace/v/joygqz.commit-genie?label=marketplace)](https://marketplace.visualstudio.com/items?itemName=joygqz.commit-genie)
-[![Installs](https://img.shields.io/visual-studio-marketplace/i/joygqz.commit-genie)](https://marketplace.visualstudio.com/items?itemName=joygqz.commit-genie)
-[![License](https://img.shields.io/github/license/joygqz/commit-genie)](LICENSE)
-
 ## Quick Start
 
 1. Install from the [Marketplace](https://marketplace.visualstudio.com/items?itemName=joygqz.commit-genie)
