@@ -1,0 +1,155 @@
+import type { ExtensionContext, SourceControl } from 'vscode'
+import type { Config } from './config'
+import { commands, ConfigurationTarget, ProgressLocation, window, workspace } from 'vscode'
+import { getConfig } from './config'
+import { getDiff, getRepository } from './git'
+import { listModels, streamCompletion } from './llm'
+import { buildMessages } from './prompt'
+
+export function start(context: ExtensionContext) {
+  let activeRequest: AbortController | undefined
+  const modelRequests = new Set<AbortController>()
+  let disposed = false
+  context.subscriptions.push(
+    commands.registerCommand('commit-genie.generate', generate),
+    commands.registerCommand('commit-genie.selectModel', selectModel),
+    { dispose },
+  )
+  return { dispose }
+
+  function dispose() {
+    disposed = true
+    activeRequest?.abort()
+    for (const request of modelRequests) {
+      request.abort()
+    }
+    modelRequests.clear()
+  }
+
+  async function generate(sourceControl?: SourceControl) {
+    const config = await requireConfig()
+    if (!config || disposed) {
+      return
+    }
+
+    activeRequest?.abort()
+    const controller = new AbortController()
+    activeRequest = controller
+
+    try {
+      const repo = getRepository(sourceControl)
+      const diff = await getDiff(repo)
+      controller.signal.throwIfAborted()
+      if (!diff) {
+        window.showInformationMessage('No changes to commit.')
+        return
+      }
+
+      await window.withProgress(
+        { location: ProgressLocation.SourceControl, title: 'Generating commit message…' },
+        async () => {
+          repo.inputBox.value = ''
+          const message = await streamCompletion(
+            config,
+            buildMessages(diff, config),
+            (chunk) => {
+              if (!controller.signal.aborted) {
+                repo.inputBox.value += chunk
+              }
+            },
+            controller.signal,
+          )
+          controller.signal.throwIfAborted()
+          repo.inputBox.value = cleanMessage(message)
+        },
+      )
+    }
+    catch (error) {
+      if (!controller.signal.aborted) {
+        showError(error)
+      }
+    }
+    finally {
+      if (activeRequest === controller) {
+        activeRequest = undefined
+      }
+    }
+  }
+
+  async function selectModel() {
+    // Listing models only needs the API key and base URL — the model itself
+    // is what this command sets, so don't require it up front.
+    const config = await requireConfig({ needModel: false })
+    if (!config || disposed) {
+      return
+    }
+
+    const controller = new AbortController()
+    modelRequests.add(controller)
+    try {
+      const models = await window.withProgress(
+        { location: ProgressLocation.Notification, title: 'Loading models…' },
+        () => listModels(config, controller.signal),
+      )
+      controller.signal.throwIfAborted()
+      if (models.length === 0) {
+        window.showWarningMessage('The provider returned no models.')
+        return
+      }
+
+      const picked = await window.showQuickPick(
+        models.map(id => ({ label: id, description: id === config.model ? 'Current' : undefined })),
+        { title: 'Select Model', placeHolder: 'Pick the model used to generate commit messages' },
+      )
+      if (picked && !disposed) {
+        await workspace.getConfiguration('commit-genie').update('model', picked.label, ConfigurationTarget.Global)
+      }
+    }
+    catch (error) {
+      if (!controller.signal.aborted) {
+        showError(error)
+      }
+    }
+    finally {
+      modelRequests.delete(controller)
+    }
+  }
+
+  async function requireConfig({ needModel = true } = {}): Promise<Config | undefined> {
+    const config = getConfig()
+    // The API key is deliberately not required: local servers need none, and a
+    // hosted provider rejecting an empty key surfaces as a clear 401.
+    const missing = [
+      !config.baseURL && 'a base URL',
+      needModel && !config.model && 'a model',
+    ].filter(item => typeof item === 'string')
+
+    if (missing.length === 0) {
+      return config
+    }
+
+    const open = 'Open Settings'
+    const action = await window.showErrorMessage(
+      `Commit Genie needs ${missing.join(' and ')}.`,
+      open,
+    )
+    if (action === open) {
+      commands.executeCommand('workbench.action.openSettings', '@ext:joygqz.commit-genie')
+    }
+    return undefined
+  }
+
+  /** Strip code fences or quotes some models wrap around the message. */
+  function cleanMessage(text: string): string {
+    return text
+      .trim()
+      .replace(/^```\w*\n?/, '')
+      .replace(/\n?```$/, '')
+      .replace(/^"([\s\S]*)"$/, '$1')
+      .trim()
+  }
+
+  function showError(error: unknown) {
+    window.showErrorMessage(error instanceof Error ? error.message : String(error))
+  }
+}
