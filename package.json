@@ -5,6 +5,7 @@
   "version": "4.1.1",
   "packageManager": "pnpm@11.6.0+sha512.9a36518224080c6fe5165afdcfe79bfa118c29be703f3f462b1e32efe1e98e47e8750b148e08286250aad4113cc7993ca413c4e2cd447752708c2ee5751bc95f",
   "description": "Generate Conventional Commits messages with AI. Works with any OpenAI-compatible API.",
+  "author": "Quincy Zhang",
   "license": "MIT",
   "homepage": "https://github.com/joygqz/commit-genie#readme",
   "repository": {
@@ -77,13 +78,13 @@
         "commit-genie.language": {
           "type": "string",
           "default": "English",
-          "description": "Language for the subject and body, e.g. English, 简体中文, 日本語. Type, scope and code identifiers stay in English.",
+          "description": "Language for the subject and body, e.g. English, \u7b80\u4f53\u4e2d\u6587, \u65e5\u672c\u8a9e. Type, scope and code identifiers stay in English.",
           "order": 3
         },
         "commit-genie.useEmoji": {
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Prefix the commit type with a matching gitmoji, e.g. `✨ feat(api): add retry`.",
+          "markdownDescription": "Prefix the commit type with a matching gitmoji, e.g. `\u2728 feat(api): add retry`.",
           "order": 4
         },
         "commit-genie.instructions": {
@@ -106,17 +107,23 @@
   },
   "scripts": {
     "prepare": "simple-git-hooks",
-    "vscode:prepublish": "pnpm run package",
-    "package": "pnpm run check-types && pnpm run lint && node build.js --production",
-    "compile": "pnpm run check-types && pnpm run lint && node build.js",
+    "vscode:prepublish": "pnpm run build",
+    "package": "pnpm run build",
+    "compile": "pnpm run check-types && node build.js",
     "watch": "run-p watch:*",
     "watch:build": "node build.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "check-types": "tsc --noEmit",
     "lint": "eslint .",
-    "ext:package": "vsce package",
-    "ext:publish": "vsce publish",
-    "release": "bumpp -a"
+    "ext:package": "vsce package --no-dependencies --out commit-genie.vsix",
+    "ext:publish": "vsce publish --no-dependencies --skip-duplicate",
+    "release": "bumpp -a --git-check --execute \"pnpm ext:package\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "pnpm run check-types && pnpm run test && pnpm run lint",
+    "build": "pnpm run verify && node build.js --production",
+    "check": "pnpm run build",
+    "release:check": "node scripts/verify-release.mjs"
   },
   "extensionDependencies": [
     "vscode.git"
@@ -127,12 +134,15 @@
     "@types/vscode": "~1.90.0",
     "@vscode/vsce": "^3.9.2",
     "bumpp": "^11.1.0",
+    "changelogithub": "14.0.0",
     "eslint": "^10.7.0",
     "lint-staged": "^17.1.0",
     "npm-run-all2": "^9.0.2",
+    "ovsx": "1.1.1",
     "rolldown": "^1.2.0",
     "simple-git-hooks": "^2.13.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.0"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm run check-types && pnpm exec lint-staged"

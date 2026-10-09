@@ -35,6 +35,24 @@ The message streams straight into the commit input box — edit it if needed, th
 - **Commit Genie: Generate Commit Message** — also the sparkle icon in the Source Control title bar
 - **Commit Genie: Select Model** — pick from the models your provider offers
 
-## License
+## Development
 
-[MIT](LICENSE)
+Use Node.js 24 and the pnpm version declared in `package.json`.
+
+```sh
+pnpm install --frozen-lockfile
+pnpm compile
+pnpm verify
+pnpm ext:package
+```
+
+`compile` creates a development bundle; `verify` runs the available static checks and unit tests; `build` verifies and creates the production bundle. `ext:package` builds a VSIX through the same verification gate used in CI. Use `watch` during development.
+
+See [Architecture](docs/ARCHITECTURE.md) for module boundaries and lifecycle rules, and [Contributing](CONTRIBUTING.md) for validation and release conventions.
+
+Maintained by **Quincy Zhang**. The publisher ID remains `joygqz`; the Marketplace publisher display name is managed separately from source code.
+
+## Feedback and License
+
+- Report bugs or request features: [GitHub Issues](https://github.com/joygqz/commit-genie/issues)
+- [MIT](LICENSE)

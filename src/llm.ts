@@ -27,95 +27,99 @@ export async function streamCompletion(
 ): Promise<string> {
   const { apiKey, baseURL, model } = config
 
-  const response = await request(`${baseURL}/chat/completions`, signal, {
+  return request(`${baseURL}/chat/completions`, signal, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...authHeader(apiKey),
-    },
+    headers: { 'Content-Type': 'application/json', ...authHeader(apiKey) },
     body: JSON.stringify({ model, messages, stream: true }),
-  })
-
-  if (!response.body) {
-    throw new Error('The API returned an empty response body.')
-  }
-
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
-  let content = ''
-
-  while (true) {
-    const { done, value } = await reader.read()
-    signal.throwIfAborted()
-    if (done) {
-      break
-    }
-
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop()!
-
-    for (const line of lines) {
-      if (!line.startsWith('data:')) {
-        continue
-      }
+  }, async (response, requestSignal) => {
+    if (!response.body)
+      throw new Error('The API returned an empty response body.')
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let content = ''
+    const consume = (line: string) => {
+      if (!line.startsWith('data:'))
+        return
       const data = line.slice(5).trim()
-      if (!data || data === '[DONE]') {
-        continue
-      }
+      if (!data || data === '[DONE]')
+        return
+      let delta: unknown
       try {
-        const delta: string | undefined = JSON.parse(data).choices?.[0]?.delta?.content
-        if (delta) {
-          content += delta
-          onChunk(delta)
-        }
+        delta = JSON.parse(data).choices?.[0]?.delta?.content
       }
       catch {
-        // ignore malformed keep-alive / partial frames
+        return
+      }
+      if (typeof delta === 'string' && delta) {
+        content += delta
+        onChunk(delta)
       }
     }
-  }
-
-  return content
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        requestSignal.throwIfAborted()
+        if (done)
+          break
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop()!
+        for (const line of lines) consume(line)
+      }
+      consume(buffer + decoder.decode())
+      return content
+    }
+    finally {
+      await reader.cancel().catch(() => {})
+      reader.releaseLock()
+    }
+  })
 }
 
 export async function listModels(config: Config, signal?: AbortSignal): Promise<string[]> {
   const { apiKey, baseURL } = config
 
-  const response = await request(`${baseURL}/models`, signal, {
+  return request(`${baseURL}/models`, signal, {
     headers: authHeader(apiKey),
+  }, async (response) => {
+    const body = await response.json() as { data?: { id: string }[] }
+    return (body.data ?? []).map(model => model.id).sort()
   })
-
-  const body = await response.json() as { data?: { id: string }[] }
-  return (body.data ?? []).map(model => model.id).sort()
 }
 
-async function request(url: string, signal: AbortSignal | undefined, init: RequestInit): Promise<Response> {
-  // Stay linked to the caller's signal for the lifetime of the response, so
-  // aborting also cancels body streaming — not just the initial fetch.
+async function request<T>(
+  url: string,
+  signal: AbortSignal | undefined,
+  init: RequestInit,
+  consume: (response: Response, signal: AbortSignal) => Promise<T>,
+): Promise<T> {
   const controller = new AbortController()
-  signal?.addEventListener('abort', () => controller.abort(), { once: true })
+  const abort = () => controller.abort(signal?.reason)
+  signal?.addEventListener('abort', abort, { once: true })
+  if (signal?.aborted)
+    abort()
   const timer = setTimeout(() => controller.abort(new Error(`Request timed out after ${REQUEST_TIMEOUT / 1000}s.`)), REQUEST_TIMEOUT)
-
-  let response: Response
   try {
-    response = await fetch(url, { ...init, signal: controller.signal })
-  }
-  catch (error) {
-    if (error instanceof TypeError) {
-      throw new Error(`Cannot reach ${url}. Check your network and base URL.`)
+    controller.signal.throwIfAborted()
+    let response: Response
+    try {
+      response = await fetch(url, { ...init, signal: controller.signal })
     }
-    throw error
+    catch (error) {
+      if (error instanceof TypeError && !controller.signal.aborted) {
+        throw new Error(`Cannot reach ${url}. Check your network and base URL.`)
+      }
+      throw error
+    }
+    if (!response.ok)
+      throw new Error(await describeError(response))
+    return await consume(response, controller.signal)
   }
   finally {
     clearTimeout(timer)
+    signal?.removeEventListener('abort', abort)
   }
-
-  if (!response.ok) {
-    throw new Error(await describeError(response))
-  }
-  return response
 }
 
 /**
